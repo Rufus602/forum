@@ -2,9 +2,9 @@ package pkg
 
 import (
 	"errors"
-	"forum/internal/models"
 	"regexp"
 	"strings"
+	"testForum/internal/models"
 )
 
 var (
