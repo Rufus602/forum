@@ -114,9 +114,9 @@ func signUpHandler(w http.ResponseWriter, r *http.Request) {
 	username := r.FormValue("username")
 	passwd := r.FormValue("passwd")
 
-	fmt.Println(email)
-	fmt.Println(username)
-	fmt.Println(passwd)
+	comngStruct := models.NewUser(email, username, passwd)
+
+	fmt.Println(comngStruct)
 
 	// var post *models.Post
 
