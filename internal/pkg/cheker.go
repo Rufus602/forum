@@ -1,4 +1,4 @@
-package service
+package pkg
 
 import (
 	"errors"
@@ -18,7 +18,7 @@ func checkUserInfo(user models.User) error {
 		return ErrInvalidEmail
 	}
 
-	for _, w := range user.Username {
+	for _, w := range user.User_name {
 		if w < 32 || w > 126 {
 			return ErrInvalidUsername
 		}
