@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"net/http"
 	"testForum/internal/models"
+	"testForum/internal/mysql"
 	"testForum/internal/pkg"
 )
 
@@ -115,6 +116,8 @@ func signUpHandler(w http.ResponseWriter, r *http.Request) {
 	passwd := r.FormValue("passwd")
 
 	comngStruct := models.NewUser(email, username, passwd)
+
+	mysql.SignUp(comngStruct)
 
 	fmt.Println(comngStruct)
 
