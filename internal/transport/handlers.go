@@ -156,7 +156,7 @@ func deleteHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func viewHandler(w http.ResponseWriter, r *http.Request) {
-	t, err := template.ParseFiles("templates/view.html", "templates/write.html", "templates/index.html", "templates/header.html", "templates/footer.html")
+	t, err := template.ParseFiles("templates/view.html", "templates/write.html", "templates/header.html", "templates/footer.html")
 	if err != nil {
 		fmt.Fprintf(w, err.Error())
 	}
