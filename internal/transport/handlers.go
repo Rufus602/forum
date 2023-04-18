@@ -114,10 +114,11 @@ func signUpHandler(w http.ResponseWriter, r *http.Request) {
 	email := r.FormValue("email")
 	username := r.FormValue("username")
 	passwd := r.FormValue("passwd")
+	passhash, err := pkg.PassSecurity(passwd)
 
-	comngStruct := models.NewUser(email, username, passwd)
+	comngStruct := models.NewUser(email, username, passhash)
 
-	err := mysql.SignUp(comngStruct)
+	err = mysql.SignUp(comngStruct)
 	if err != nil {
 		fmt.Fprint(w, "username is full")
 		return
