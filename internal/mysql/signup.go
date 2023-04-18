@@ -6,19 +6,28 @@ import (
 	"testForum/internal/models"
 )
 
-func SignUp(str *models.User) {
+func SignUp(str *models.User) error {
+	err := checkDuplex(str)
+	if err != nil {
+		return err
+	}
+
 	db, err := sql.Open("sqlite3", "./internal/database/data.db")
 	if err != nil {
 		fmt.Println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+		return err
 	}
+	defer db.Close()
 
 	statement, err := db.Prepare("INSERT INTO users (user_name, email, password) VALUES (?,?,?)")
 	if err != nil {
 		fmt.Println("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
+		return err
 	}
 
-	a, err := statement.Exec(str.User_name, str.Email, str.Password)
+	_, err = statement.Exec(str.User_name, str.Email, str.Password)
 	if err != nil {
-		fmt.Println(a)
+		return err
 	}
+	return nil
 }
