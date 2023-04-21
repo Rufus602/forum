@@ -2,33 +2,29 @@ package pkg
 
 import (
 	"errors"
-	"fmt"
 	"regexp"
 	"strings"
 	"testForum/internal/models"
 )
 
 var (
-	ErrInvalidEmail    = errors.New("invalid email address")
-	ErrInvalidPassword = errors.New("invalid password")
-	ErrInvalidUsername = errors.New("invalid username")
+	ErrInvalidEmail    = errors.New("email must consists from letters, at and dot")
+	ErrInvalidPassword = errors.New("Password have to contain at least 8 characters but no more than 20; include number, lowercase, uppercase and symbol")
+	ErrInvalidUsername = errors.New("Name must consists from letters")
 )
 
 func CheckUserInfo(user models.User) error {
 	if !regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`).MatchString(user.Email) {
-		fmt.Println("111")
 		return ErrInvalidEmail
 	}
 
 	for _, w := range user.User_name {
 		if w < 32 || w > 126 {
-			fmt.Println("222")
 			return ErrInvalidUsername
 		}
 	}
 
 	if !checkPassword(user.Password) {
-		fmt.Println("333")
 		return ErrInvalidPassword
 	}
 
@@ -42,18 +38,15 @@ func checkPassword(password string) bool {
 	symbols := "!@#$%^&*()_-+={[}]|\\:;<,>.?/"
 
 	if len(password) < 8 || len(password) > 20 {
-		fmt.Println("444")
 		return false
 	}
 
 	if !contains(password, numbers) || !contains(password, lowerCase) || !contains(password, upperCase) || !contains(password, symbols) {
-		fmt.Println("555")
 		return false
 	}
 
 	for _, w := range symbols {
 		if w < 32 || w > 126 {
-			fmt.Println("666")
 			return false
 		}
 	}

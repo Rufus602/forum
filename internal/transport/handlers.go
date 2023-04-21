@@ -118,7 +118,7 @@ func signUpHandler(w http.ResponseWriter, r *http.Request) {
 
 	erro := pkg.CheckUserInfo(*models.NewUser(username, email, passwd))
 	if erro != nil {
-		fmt.Fprint(w, "fatal sign up error ")
+		fmt.Fprint(w, erro)
 		return
 	}
 
