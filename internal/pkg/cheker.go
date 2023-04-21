@@ -3,6 +3,7 @@ package pkg
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 	"testForum/internal/models"
 )
@@ -14,10 +15,10 @@ var (
 )
 
 func CheckUserInfo(user models.User) error {
-	// if !regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`).MatchString(user.Email) {
-	// 	fmt.Println("111")
-	// 	return ErrInvalidEmail
-	// }
+	if !regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`).MatchString(user.Email) {
+		fmt.Println("111")
+		return ErrInvalidEmail
+	}
 
 	for _, w := range user.User_name {
 		if w < 32 || w > 126 {
@@ -62,10 +63,9 @@ func checkPassword(password string) bool {
 func contains(s, checkSymbols string) bool {
 	for _, w := range checkSymbols {
 		if strings.Contains(s, string(w)) {
-			fmt.Println("777")
 			return true
 		}
 	}
-	fmt.Println("888")
+
 	return false
 }

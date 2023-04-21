@@ -116,6 +116,12 @@ func signUpHandler(w http.ResponseWriter, r *http.Request) {
 	passwd := r.FormValue("passwd")
 	passhash, err := pkg.PassSecurity(passwd)
 
+	era := pkg.CheckUserInfo(*models.NewUser(username, email, passwd))
+	if era != nil {
+		fmt.Fprint(w, "fatal sign up error ")
+		return
+	}
+
 	comngStruct := models.NewUser(email, username, passhash)
 
 	err = mysql.SignUp(comngStruct)
