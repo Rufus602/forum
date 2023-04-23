@@ -17,6 +17,9 @@ func CheckUserInfo(user models.User) error {
 	if !regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`).MatchString(user.Email) {
 		return ErrInvalidEmail
 	}
+	if user.User_name == "" {
+		return ErrInvalidUsername
+	}
 
 	for _, w := range user.User_name {
 		if w < 32 || w > 126 {
