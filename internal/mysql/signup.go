@@ -1,7 +1,6 @@
 package mysql
 
 import (
-	"database/sql"
 	"testForum/internal/models"
 )
 
@@ -11,13 +10,7 @@ func SignUp(str *models.User) error {
 		return err
 	}
 
-	db, err := sql.Open("sqlite3", "./internal/database/data.db")
-	if err != nil {
-		return err
-	}
-	defer db.Close()
-
-	statement, err := db.Prepare("INSERT INTO users (user_name, email, password) VALUES (?,?,?)")
+	statement, err := DB.Prepare("INSERT INTO users (user_name, email, password) VALUES (?,?,?)")
 	if err != nil {
 		return err
 	}
