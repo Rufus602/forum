@@ -10,14 +10,44 @@ type Model struct {
 	DB *sql.DB
 }
 
-/*############################################################################################################*/
-func (m *Model) GetUser() {
+func (m *Model) DeleteToken(Token string) error {
+	stmt, err := m.DB.Prepare("DELETE FROM session WHERE Token = ?")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
 
+	_, err = stmt.Exec(Token)
+	if err != nil {
+		return err
+	}
+	return nil
 }
-func (m *Model) GetPost(postId int) (*Post, error) {
-	row := m.DB.QueryRow(`SELECT post_id, user_name, title, text, category FROM Posts where post_id=?`, postId)
+
+/*############################################################################################################*/
+
+func (m *Model) GetUserIDByToken(token string) (*User, error) {
+	/**/
+	stmt := `SELECT u.id, u.email, u.name, u.password FROM Session s JOIN Users u ON s.user_id = u.user_id WHERE s.token = ?`
+
+	row := m.DB.QueryRow(stmt, token)
+	user := &User{}
+
+	err := row.Scan(&user.UserId, &user.Gmail, &user.UserName, &user.Password)
+	// fmt.Println(err)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNoRecord
+		} else {
+			return nil, err
+		}
+	}
+	return user, nil
+}
+func (m *Model) GetPost(postId int, userId int) (*Post, error) {
+	row := m.DB.QueryRow(`SELECT post_id, user_id, user_name, title, text, category FROM Posts where post_id=?`, postId)
 	post := &Post{}
-	err := row.Scan(&post.PostId, &post.UserName, &post.Title, &post.Text, &post.Category)
+	err := row.Scan(&post.PostId, &post.UserId, &post.UserName, &post.Title, &post.Text, &post.Category)
 	if err != nil {
 		return nil, err
 	}
@@ -25,10 +55,14 @@ func (m *Model) GetPost(postId int) (*Post, error) {
 	if err != nil {
 		return nil, err
 	}
+	post.Reaction, err = m.GetReactionPost(userId, postId)
+	if err != nil {
+		return nil, err
+	}
 	return post, nil
 }
 
-func (m *Model) GetPostAll() ([]*Post, error) {
+func (m *Model) GetPostAll(userId int) ([]*Post, error) {
 	query := `SELECT post_id, user_name, title, text, category FROM Posts`
 
 	rows, err := m.DB.Query(query)
@@ -37,13 +71,13 @@ func (m *Model) GetPostAll() ([]*Post, error) {
 	}
 	defer rows.Close()
 	posts := []*Post{}
-	err = m.PostShorter(rows, posts)
+	err = m.PostShorter(rows, posts, userId)
 	if err != nil {
 		return nil, err
 	}
 	return posts, nil
 }
-func (m *Model) GetPostCategories(category Category) ([]*Post, error) {
+func (m *Model) GetPostCategories(category Category, userId int) ([]*Post, error) {
 	query := `SELECT post_id, user_name, title, text, category FROM Posts where category=?`
 	rows, err := m.DB.Query(query, category)
 	if err != nil {
@@ -51,7 +85,7 @@ func (m *Model) GetPostCategories(category Category) ([]*Post, error) {
 	}
 	defer rows.Close()
 	posts := []*Post{}
-	err = m.PostShorter(rows, posts)
+	err = m.PostShorter(rows, posts, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +100,7 @@ func (m *Model) GetPostCreated(userId int) ([]*Post, error) {
 	}
 	defer rows.Close()
 	posts := []*Post{}
-	err = m.PostShorter(rows, posts)
+	err = m.PostShorter(rows, posts, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -81,14 +115,14 @@ func (m *Model) GetPostLiked(userId int) ([]*Post, error) {
 	}
 	defer rows.Close()
 	posts := []*Post{}
-	err = m.PostShorter(rows, posts)
+	err = m.PostShorter(rows, posts, userId)
 	if err != nil {
 		return nil, err
 	}
 	return posts, nil
 }
 
-func (m *Model) GetComments(postId int) ([]*Comment, error) {
+func (m *Model) GetComments(postId int, userId int) ([]*Comment, error) {
 
 	query := `SELECT comment_id, user_id, post_id, user_name, text FROM Comments where post_id=?`
 	rows, err := m.DB.Query(query, postId)
@@ -110,8 +144,13 @@ func (m *Model) GetComments(postId int) ([]*Comment, error) {
 		if err != nil {
 			return nil, err
 		}
+		comment.Reaction, err = m.GetReactionPost(userId, comment.CommentId)
+		if err != nil {
+			return nil, err
+		}
 		comments = append(comments, comment)
 	}
+
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
@@ -215,7 +254,28 @@ type ErrorMsg struct {
 }
 
 /*######################################################Acquisition#######################################################################################*/
-
+func (m *Model) GetReactionPost(userId int, postId int) (reaction int, err error) {
+	row := m.DB.QueryRow("SELECT reaction from PostReactions where user_id=$1 and post_id=$2", userId, postId)
+	err = row.Scan(&reaction)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return 0, nil
+		}
+		return 0, err
+	}
+	return reaction, nil
+}
+func (m *Model) GetReactionComment(userId int, commentId int) (reaction int, err error) {
+	row := m.DB.QueryRow("SELECT reaction from CommentReactions where user_id=$1 and comment_id=$2", userId, commentId)
+	err = row.Scan(&reaction)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return 0, nil
+		}
+		return 0, err
+	}
+	return reaction, nil
+}
 func (m *Model) GetReactionCountPost(postId int) (likes, dislikes int, err error) {
 	rowLikes := m.DB.QueryRow("SELECT COUNT(*) from PostReactions where post_id=$1 and reaction=1", postId)
 	rowDislikes := m.DB.QueryRow("SELECT COUNT(*) from PostReactions where post_id=$1 and reaction=2", postId)
@@ -245,7 +305,7 @@ func (m *Model) GetReactionCountComment(postId int) (likes, dislikes int, err er
 	return likes, dislikes, nil
 }
 
-func (m *Model) PostShorter(rows *sql.Rows, posts []*Post) (err error) {
+func (m *Model) PostShorter(rows *sql.Rows, posts []*Post, userId int) (err error) {
 	for rows.Next() {
 		post := &Post{}
 		err = rows.Scan(&post.PostId, &post.UserName, &post.Title, &post.Text, &post.Category)
@@ -256,6 +316,10 @@ func (m *Model) PostShorter(rows *sql.Rows, posts []*Post) (err error) {
 			return err
 		}
 		post.Likes, post.Dislikes, err = m.GetReactionCountPost(post.PostId)
+		if err != nil {
+			return err
+		}
+		post.Reaction, err = m.GetReactionPost(userId, post.PostId)
 		if err != nil {
 			return err
 		}

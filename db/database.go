@@ -70,11 +70,11 @@ const (
 		FOREIGN KEY (user_id) REFERENCES Users(user_id),
 		FOREIGN KEY (post_id) REFERENCES Posts(post_id)
 	);`
-	Session = `CREATE TABLE IF NOT EXISTS session (
-		ID INTEGER PRIMARY KEY,
-		UserID INTEGER,
-		Token TEXT UNIQUE,
-		ExpirationDate TIMESTAMP
+	Session = `CREATE TABLE IF NOT EXISTS Sessions (
+		session_id INTEGER PRIMARY KEY,
+		user_id INTEGER,
+		token TEXT UNIQUE,
+		expiration_date TIMESTAMP
 	);`
 	PostReaction = `CREATE TABLE IF NOT EXISTS PostReactions (
 		user_id INTEGER,

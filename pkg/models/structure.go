@@ -13,18 +13,20 @@ type Post struct {
 	Category int
 	Likes    int
 	Dislikes int
+	Reaction int
 }
 type Comment struct {
 	CommentId int
-
-	UserId   int
-	PostId   int
-	UserName int
-	Text     string
-	Likes    int
-	Dislikes int
+	UserId    int
+	PostId    int
+	UserName  int
+	Text      string
+	Likes     int
+	Dislikes  int
+	Reaction  int
 }
 type User struct {
+	UserId   int
 	UserName string
 	Gmail    string
 	Password string
