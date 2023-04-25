@@ -3,7 +3,6 @@ package models
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 )
 
 type Model struct {
@@ -144,7 +143,7 @@ func (m *Model) GetComments(postId int, userId int) ([]*Comment, error) {
 		if err != nil {
 			return nil, err
 		}
-		comment.Reaction, err = m.GetReactionPost(userId, comment.CommentId)
+		comment.Reaction, err = m.GetReactionComment(userId, comment.CommentId)
 		if err != nil {
 			return nil, err
 		}
@@ -160,7 +159,7 @@ func (m *Model) GetComments(postId int, userId int) ([]*Comment, error) {
 /*############################################################################################################*/
 
 func (m *Model) ReactPost(userId int, postId int, reaction int) error {
-	result, err := m.GetUserPostReaction(userId, postId)
+	result, err := m.GetReactionPost(userId, postId)
 	if err != nil {
 		return err
 	}
@@ -188,7 +187,7 @@ func (m *Model) ReactPost(userId int, postId int, reaction int) error {
 }
 
 func (m *Model) ReactComment(userId int, commentId int, reaction int) error {
-	result, err := m.GetUserPostReaction(userId, commentId)
+	result, err := m.GetReactionComment(userId, commentId)
 	if err != nil {
 		return err
 	}
@@ -329,26 +328,6 @@ func (m *Model) PostShorter(rows *sql.Rows, posts []*Post, userId int) (err erro
 		return err
 	}
 	return nil
-}
-
-func (m *Model) GetUserPostReaction(userId int, postId int) (result int, err error) {
-	row := m.DB.QueryRow(`select reaction from PostReactions where user_id=? and post_id=?`, userId, postId)
-	err = row.Scan(&result)
-	if err != nil {
-		fmt.Println("error is right here")
-		return 0, err
-	}
-	return result, nil
-}
-
-func (m *Model) GetUserCommentReaction(userId int, comment int) (result int, err error) {
-	row := m.DB.QueryRow(`select reaction from CommentReactions where user_id=? and comment_id=?`, userId, comment)
-	err = row.Scan(&result)
-	if err != nil {
-		fmt.Println("error is right here")
-		return 0, err
-	}
-	return result, nil
 }
 
 /*#####################################################################################################################################################*/
