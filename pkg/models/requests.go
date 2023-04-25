@@ -77,7 +77,7 @@ func (m *Model) GetPostAll(userId int) ([]*Post, error) {
 	}
 	return posts, nil
 }
-func (m *Model) GetPostCategories(category Category, userId int) ([]*Post, error) {
+func (m *Model) GetPostCategories(category string, userId int) ([]*Post, error) {
 	query := `SELECT post_id, user_name, title, text, category FROM Posts where category=?`
 	rows, err := m.DB.Query(query, category)
 	if err != nil {

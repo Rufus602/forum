@@ -10,7 +10,7 @@ type Post struct {
 	UserName string
 	Title    string
 	Text     string
-	Category int
+	Category string
 	Likes    int
 	Dislikes int
 	Reaction int
