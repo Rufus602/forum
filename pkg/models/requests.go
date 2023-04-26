@@ -25,14 +25,14 @@ func (m *Model) DeleteToken(Token string) error {
 
 /*############################################################################################################*/
 
-func (m *Model) GetUserIDByToken(token string) (*User, error) {
+func (m *Model) GetUserIDByToken(token string) (*Session, error) {
 	/**/
-	stmt := `SELECT u.id, u.email, u.name, u.password FROM Session s JOIN Users u ON s.user_id = u.user_id WHERE s.token = ?`
+	stmt := `SELECT s.session_id, s.user_id, s.expiration_date FROM Session s where s.token = ?`
 
 	row := m.DB.QueryRow(stmt, token)
-	user := &User{}
+	session := &Session{}
 
-	err := row.Scan(&user.UserId, &user.Gmail, &user.UserName, &user.Password)
+	err := row.Scan(&session.SessionID, &session.UserID, &session.ExpirationDate)
 	// fmt.Println(err)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -41,7 +41,7 @@ func (m *Model) GetUserIDByToken(token string) (*User, error) {
 			return nil, err
 		}
 	}
-	return user, nil
+	return session, nil
 }
 func (m *Model) GetPost(postId int, userId int) (*Post, error) {
 	row := m.DB.QueryRow(`SELECT post_id, user_id, user_name, title, text, category FROM Posts where post_id=?`, postId)
@@ -227,8 +227,8 @@ func (m *Model) InsertComment(postId int, userId int, userName string, text stri
 }
 
 func (m *Model) InsertPost(post Post) error {
-	query := `INSERT INTO Posts(post_id, user_id, user_name, title, text, category) 
-			VALUES(?,?,?,?,?,?,?)`
+	query := `INSERT INTO Posts(user_id, user_name, title, text, category) 
+			VALUES(?,?,?,?,?)`
 	_, err := m.DB.Exec(query, post.UserId, post.UserName, post.Title, post.Text, post.Category)
 	if err != nil {
 		return err
@@ -254,6 +254,9 @@ type ErrorMsg struct {
 
 /*######################################################Acquisition#######################################################################################*/
 func (m *Model) GetReactionPost(userId int, postId int) (reaction int, err error) {
+	if userId == 0 {
+		return 0, nil
+	}
 	row := m.DB.QueryRow("SELECT reaction from PostReactions where user_id=$1 and post_id=$2", userId, postId)
 	err = row.Scan(&reaction)
 	if err != nil {
@@ -265,6 +268,9 @@ func (m *Model) GetReactionPost(userId int, postId int) (reaction int, err error
 	return reaction, nil
 }
 func (m *Model) GetReactionComment(userId int, commentId int) (reaction int, err error) {
+	if userId == 0 {
+		return 0, nil
+	}
 	row := m.DB.QueryRow("SELECT reaction from CommentReactions where user_id=$1 and comment_id=$2", userId, commentId)
 	err = row.Scan(&reaction)
 	if err != nil {

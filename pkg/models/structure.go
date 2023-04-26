@@ -1,8 +1,13 @@
 package models
 
-import "errors"
+import (
+	"errors"
+	"time"
+)
 
-var ErrNoRecord = errors.New("Create User")
+var ErrNoRecord = errors.New("Sign In")
+
+var SignIn = errors.New("SignUp first")
 
 type Post struct {
 	PostId   int
@@ -31,15 +36,10 @@ type User struct {
 	Gmail    string
 	Password string
 }
-type ReactionPost struct {
-	UserId   int
-	PostId   int
-	Reaction int
+type Session struct {
+	SessionID      int
+	UserID         int
+	Token          string
+	ExpirationDate time.Time
 }
-type ReactionComment struct {
-	UserId    int
-	CommentId int
-	Reaction  int
-}
-
 type Category int

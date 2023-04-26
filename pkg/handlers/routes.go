@@ -7,7 +7,13 @@ import (
 func (app *Application) Routes() *http.ServeMux {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", app.home)
-	mux.HandleFunc("/artist", app.artist)
+	mux.HandleFunc("/createPost", app.MiddleWare(app.createPost))
+	mux.HandleFunc("/createdPosts", app.MiddleWare(app.createdPosts))
+	mux.HandleFunc("/likedPosts", app.MiddleWare(app.liked))
+	mux.HandleFunc("/signin", app.signIn)
+	mux.HandleFunc("/signup", app.signUp)
+	mux.HandleFunc("/logout", app.logout)
+	mux.HandleFunc("/post", app.post)
 
 	fileServer := http.FileServer(http.Dir("./ui/static/"))
 	mux.Handle("/static/", http.StripPrefix("/static", fileServer))

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"testForum/db"
 	"testForum/pkg/handlers"
+	"testForum/pkg/models"
 )
 
 func main() {
@@ -18,7 +19,7 @@ func main() {
 	app := &handlers.Application{
 		ErrorLog: errorLog,
 		InfoLog:  infoLog,
-		DB:       db,
+		DB:       &models.Model{DB: db},
 	}
 	srv := &http.Server{
 		Addr:     *addr,

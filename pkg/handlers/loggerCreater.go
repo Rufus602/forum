@@ -1,15 +1,15 @@
 package handlers
 
 import (
-	"database/sql"
 	"log"
 	"os"
+	"testForum/pkg/models"
 )
 
 type Application struct {
 	ErrorLog *log.Logger
 	InfoLog  *log.Logger
-	DB       *sql.DB
+	DB       *models.Model
 }
 
 func LoggerCreater() (*log.Logger, *log.Logger) {
