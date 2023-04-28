@@ -19,7 +19,7 @@ func (app *Application) serverError(w http.ResponseWriter, err error) {
 	myErr := errParser{}
 	myErr.Number = http.StatusInternalServerError
 	myErr.Error = http.StatusText(http.StatusInternalServerError)
-	temp, err := template.ParseFiles("./ui/html/errHandle.html")
+	temp, err := template.ParseFiles("./ui/templates/error.html", "./ui/templates/header.html")
 	w.WriteHeader(http.StatusInternalServerError)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -47,7 +47,7 @@ func (app *Application) clientError(w http.ResponseWriter, status int) {
 	//myErr.Number = string(status)
 	//myErr.Error = http.StatusText(status)
 
-	temp, err := template.ParseFiles("./ui/html/errHandle.html")
+	temp, err := template.ParseFiles("./ui/templates/error.html", "./ui/templates/header.html")
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
