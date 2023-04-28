@@ -12,7 +12,9 @@ func (app *Application) MiddleWare(handle http.HandlerFunc) http.HandlerFunc {
 		cookie, err := r.Cookie("session_cookie")
 		if err != nil {
 			http.Redirect(w, r, "/signIn", http.StatusPermanentRedirect)
-			w.Write([]byte("Please login"))
+			if _, err = w.Write([]byte("Please login")); err != nil {
+				app.serverError(w, err)
+			}
 			return
 		}
 		token := cookie.Value
@@ -20,7 +22,9 @@ func (app *Application) MiddleWare(handle http.HandlerFunc) http.HandlerFunc {
 		if err != nil {
 			if errors.Is(err, models.ErrNoRecord) {
 				http.Redirect(w, r, "/logout", http.StatusPermanentRedirect)
-				w.Write([]byte("There is no such session"))
+				if _, err = w.Write([]byte("There is no such session")); err != nil {
+					app.serverError(w, err)
+				}
 				return
 			}
 			app.serverError(w, err)

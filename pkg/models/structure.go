@@ -22,8 +22,8 @@ type Post struct {
 type Comment struct {
 	CommentId int
 	UserId    int
-	PostId    int
 	UserName  string
+	PostId    int
 	Text      string
 	Likes     int
 	Dislikes  int

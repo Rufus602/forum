@@ -10,10 +10,14 @@ import (
 	"time"
 )
 
+var errorMessage = ErrMessage{Err: "There is no such user. Maybe incorrect username or password, or you did not register"}
+
 func (app *Application) redirect(w http.ResponseWriter, r *http.Request) {
 	r.Method = http.MethodGet
 	http.Redirect(w, r, "/signIn", http.StatusPermanentRedirect)
-	w.Write([]byte("loginFirst"))
+	if _, err := w.Write([]byte("loginFirst")); err != nil {
+		app.serverError(w, err)
+	}
 	return
 }
 
@@ -40,7 +44,115 @@ func (app *Application) checkerSession(w http.ResponseWriter, r *http.Request) (
 
 /*############################################################################################################*/
 
+func (app *Application) SignUpPost(w http.ResponseWriter, r *http.Request) {
+	session, err := app.checkerSession(w, r)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+	if session != nil {
+		r.Method = http.MethodGet
+		http.Redirect(w, r, "/logout", http.StatusPermanentRedirect)
+		return
+	}
+	user := models.User{
+		UserName: r.FormValue("username"),
+		Gmail:    r.FormValue("email"),
+		Password: r.FormValue("password"),
+	}
+
+	err = app.DB.InsertUser(user)
+	if err != nil {
+		app.serverError(w, err)
+	}
+	r.Method = http.MethodGet
+	http.Redirect(w, r, "/signIn", http.StatusPermanentRedirect)
+	return
+}
+func (app *Application) SignUpGet(w http.ResponseWriter, r *http.Request, s []string) {
+	session, err := app.checkerSession(w, r)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+	if session != nil {
+		r.Method = http.MethodGet
+		http.Redirect(w, r, "/logout", http.StatusPermanentRedirect)
+		return
+	}
+	templates, err := template.ParseFiles(s...)
+	if err != nil {
+		app.serverError(w, err)
+	}
+	if err := templates.Execute(w, nil); err != nil {
+		app.serverError(w, err)
+		return
+	}
+	return
+}
+
 /*############################################################################################################*/
+
+func (app *Application) SignInPost(w http.ResponseWriter, r *http.Request) {
+	session, err := app.checkerSession(w, r)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+	if session != nil {
+		r.Method = http.MethodGet
+		http.Redirect(w, r, "/logout", http.StatusPermanentRedirect)
+		return
+	}
+	username := r.FormValue("username")
+	password := r.FormValue("password")
+	session, err = app.DB.GetUser(username, password)
+	if err != nil {
+		if errors.Is(err, models.ErrNoRecord) {
+			r.Method = http.MethodGet
+			templates, err := template.ParseFiles("./ui/templates/signin.html", "./ui/templates/header.html")
+			if err != nil {
+				app.serverError(w, err)
+			}
+			if err := templates.Execute(w, errorMessage); err != nil {
+				app.serverError(w, err)
+				return
+			}
+			return
+		}
+		app.serverError(w, err)
+		return
+	}
+	http.SetCookie(w, &http.Cookie{
+		Name:    "session_token",
+		Value:   session.Token,
+		Expires: session.ExpirationDate,
+	})
+	http.Redirect(w, r, "/", http.StatusPermanentRedirect)
+	return
+}
+func (app *Application) SignInGet(w http.ResponseWriter, r *http.Request, s []string) {
+	session, err := app.checkerSession(w, r)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+	if session != nil {
+		r.Method = http.MethodGet
+		http.Redirect(w, r, "/logout", http.StatusPermanentRedirect)
+		return
+	}
+	templates, err := template.ParseFiles(s...)
+	if err != nil {
+		app.serverError(w, err)
+	}
+	if err := templates.Execute(w, nil); err != nil {
+		app.serverError(w, err)
+		return
+	}
+	return
+}
+
 func (app *Application) CreatePostPost(w http.ResponseWriter, r *http.Request) {
 	session, err := app.checkerSession(w, r)
 	if err != nil {
