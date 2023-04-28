@@ -3,6 +3,9 @@ package models
 import (
 	"database/sql"
 	"errors"
+	"fmt"
+	"github.com/google/uuid"
+	"time"
 )
 
 type Model struct {
@@ -22,46 +25,81 @@ func (m *Model) DeleteToken(Token string) error {
 	}
 	return nil
 }
-
-/*############################################################################################################*/
-
 func (m *Model) GetUserIDByToken(token string) (*Session, error) {
 	/**/
-	stmt := `SELECT s.session_id, s.user_id, s.expiration_date FROM Session s where s.token = ?`
+	query := `SELECT user_id, user_name, token, expiration_date FROM Sessions  where token = ?`
 
-	row := m.DB.QueryRow(stmt, token)
+	row := m.DB.QueryRow(query, token)
 	session := &Session{}
 
-	err := row.Scan(&session.SessionID, &session.UserID, &session.ExpirationDate)
+	err := row.Scan(&session.UserID, &session.UserName, &session.Token, &session.ExpirationDate)
 	// fmt.Println(err)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrNoRecord
 		} else {
-			return nil, err
+			return nil, ErrNoRecord
 		}
+		return nil, err
 	}
 	return session, nil
 }
-func (m *Model) GetPost(postId int, userId int) (*Post, error) {
+func (m *Model) CreateSession(userId int, userName string) (string, time.Time, error) {
+	token := uuid.NewString()
+	date := time.Now().Add(2 * time.Hour)
+	query := `INSERT INTO Sessions ( user_id, user_name, token, expiration_date) 
+			VALUES(?,?,?,?)`
+	_, err := m.DB.Exec(query, userId, userName, token, date)
+	if err != nil {
+		return "", date, err
+	}
+	return token, date, nil
+}
+
+/*############################################################################################################*/
+
+func (m *Model) GetUser(userName string, password string) (*Session, error) {
+	query := `SELECT user_id from Users where user_name=? and password=?`
+	row := m.DB.QueryRow(query, userName, password)
+	var userId int
+	if err := row.Scan(&userId); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNoRecord
+		}
+		return nil, err
+	}
+	token, date, err := m.CreateSession(userId, userName)
+	if err != nil {
+		return nil, err
+	}
+	session := &Session{
+		UserID:         userId,
+		Token:          token,
+		ExpirationDate: date,
+	}
+
+	return session, nil
+}
+
+func (m *Model) GetPost(postId int) (*Post, error) {
 	row := m.DB.QueryRow(`SELECT post_id, user_id, user_name, title, text, category FROM Posts where post_id=?`, postId)
 	post := &Post{}
 	err := row.Scan(&post.PostId, &post.UserId, &post.UserName, &post.Title, &post.Text, &post.Category)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNoRecord
+		}
 		return nil, err
 	}
 	post.Likes, post.Dislikes, err = m.GetReactionCountPost(post.PostId)
 	if err != nil {
 		return nil, err
 	}
-	post.Reaction, err = m.GetReactionPost(userId, postId)
-	if err != nil {
-		return nil, err
-	}
+
 	return post, nil
 }
 
-func (m *Model) GetPostAll(userId int) ([]*Post, error) {
+func (m *Model) GetPostAll() ([]*Post, error) {
 	query := `SELECT post_id, user_name, title, text, category FROM Posts`
 
 	rows, err := m.DB.Query(query)
@@ -70,13 +108,13 @@ func (m *Model) GetPostAll(userId int) ([]*Post, error) {
 	}
 	defer rows.Close()
 	posts := []*Post{}
-	err = m.PostShorter(rows, posts, userId)
+	err = m.PostShorter(rows, posts)
 	if err != nil {
 		return nil, err
 	}
 	return posts, nil
 }
-func (m *Model) GetPostCategories(category string, userId int) ([]*Post, error) {
+func (m *Model) GetPostCategories(category string) ([]*Post, error) {
 	query := `SELECT post_id, user_name, title, text, category FROM Posts where category=?`
 	rows, err := m.DB.Query(query, category)
 	if err != nil {
@@ -84,8 +122,11 @@ func (m *Model) GetPostCategories(category string, userId int) ([]*Post, error) 
 	}
 	defer rows.Close()
 	posts := []*Post{}
-	err = m.PostShorter(rows, posts, userId)
+	err = m.PostShorter(rows, posts)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNoRecord
+		}
 		return nil, err
 	}
 	return posts, nil
@@ -99,7 +140,7 @@ func (m *Model) GetPostCreated(userId int) ([]*Post, error) {
 	}
 	defer rows.Close()
 	posts := []*Post{}
-	err = m.PostShorter(rows, posts, userId)
+	err = m.PostShorter(rows, posts)
 	if err != nil {
 		return nil, err
 	}
@@ -114,14 +155,14 @@ func (m *Model) GetPostLiked(userId int) ([]*Post, error) {
 	}
 	defer rows.Close()
 	posts := []*Post{}
-	err = m.PostShorter(rows, posts, userId)
+	err = m.PostShorter(rows, posts)
 	if err != nil {
 		return nil, err
 	}
 	return posts, nil
 }
 
-func (m *Model) GetComments(postId int, userId int) ([]*Comment, error) {
+func (m *Model) GetComments(postId int) ([]*Comment, error) {
 
 	query := `SELECT comment_id, user_id, post_id, user_name, text FROM Comments where post_id=?`
 	rows, err := m.DB.Query(query, postId)
@@ -135,15 +176,12 @@ func (m *Model) GetComments(postId int, userId int) ([]*Comment, error) {
 		err = rows.Scan(&comment.CommentId, &comment.UserId, &comment.PostId, &comment.UserName, &comment.Text)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
+				fmt.Println("ErrorInComments")
 				return nil, ErrNoRecord
 			}
 			return nil, err
 		}
 		comment.Likes, comment.Dislikes, err = m.GetReactionCountComment(comment.CommentId)
-		if err != nil {
-			return nil, err
-		}
-		comment.Reaction, err = m.GetReactionComment(userId, comment.CommentId)
 		if err != nil {
 			return nil, err
 		}
@@ -171,12 +209,10 @@ func (m *Model) ReactPost(userId int, postId int, reaction int) error {
 	} else if result == 0 {
 		query := `INSERT INTO PostReactions ( user_id, post_id, reaction) 
 			VALUES(?,?,?)`
-
 		_, err := m.DB.Exec(query, userId, postId, reaction)
 		if err != nil {
 			return err
 		}
-
 	} else {
 		_, err = m.DB.Exec("UPDATE PostReactions SET reaction = $1, WHERE user_id = $2 and post_id=$3", reaction, userId, postId)
 		if err != nil {
@@ -199,12 +235,10 @@ func (m *Model) ReactComment(userId int, commentId int, reaction int) error {
 	} else if result == 0 {
 		query := `INSERT INTO CommentReactions ( user_id, comment_id, reaction) 
 			VALUES(?,?,?)`
-
 		_, err := m.DB.Exec(query, userId, commentId, reaction)
 		if err != nil {
 			return err
 		}
-
 	} else {
 		_, err = m.DB.Exec("UPDATE CommentReactions SET reaction = $1, WHERE user_id = $2 and comment_id=$3", reaction, userId, commentId)
 		if err != nil {
@@ -245,11 +279,6 @@ func (m *Model) InsertUser(u User) error {
 		return err
 	}
 	return nil
-}
-
-type ErrorMsg struct {
-	Status int
-	Msg    string
 }
 
 /*######################################################Acquisition#######################################################################################*/
@@ -310,7 +339,7 @@ func (m *Model) GetReactionCountComment(postId int) (likes, dislikes int, err er
 	return likes, dislikes, nil
 }
 
-func (m *Model) PostShorter(rows *sql.Rows, posts []*Post, userId int) (err error) {
+func (m *Model) PostShorter(rows *sql.Rows, posts []*Post) (err error) {
 	for rows.Next() {
 		post := &Post{}
 		err = rows.Scan(&post.PostId, &post.UserName, &post.Title, &post.Text, &post.Category)
@@ -321,10 +350,6 @@ func (m *Model) PostShorter(rows *sql.Rows, posts []*Post, userId int) (err erro
 			return err
 		}
 		post.Likes, post.Dislikes, err = m.GetReactionCountPost(post.PostId)
-		if err != nil {
-			return err
-		}
-		post.Reaction, err = m.GetReactionPost(userId, post.PostId)
 		if err != nil {
 			return err
 		}

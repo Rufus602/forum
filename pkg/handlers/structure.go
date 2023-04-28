@@ -8,3 +8,7 @@ type TemplateStructure struct {
 	Posts    []*models.Post
 	Comments []*models.Comment
 }
+
+type ErrMessage struct {
+	Err string
+}

@@ -1,0 +1,86 @@
+{{ define "buttons"}}
+<div type="button" class="row" style="padding: 20px;">
+	<div class="col-md-4">
+		
+
+	</div>
+	
+	<div class="col-md-1" >
+		
+		<form>
+			<input type="hidden" name="" value="" id="">
+			<button class="btn btn-default btn-block btn" type="button" onclick="window.location.href = '/';">All</button>
+
+		</form>
+	</div>
+
+	<div class="col-md-1" >
+		
+		<form action="/tag" method="GET">
+            <input type="hidden" name="gettag" value="golang" id="">
+            <button class="btn btn-default btn-block btn" type="submit" >Golang</button>			
+        </form>
+	</div>
+
+	<div class="col-md-1" >
+		<form action="/tag" method="GET">
+            <input type="hidden" name="gettag" value="js" id="">
+            <button class="btn btn-default btn-block" type="submit" >JavaScript</button>			
+        </form>
+	</div>
+
+	<div class="col-md-1" >
+
+		<form action="/tag" method="GET">
+            <input type="hidden" name="gettag" value="rust" id="">
+            <button class="btn btn-default btn-block" type="submit" >Rust</button>			
+        </form>
+	</div>
+	<div class="col-md-4" >
+		
+	</div>
+	
+
+	<div class="col-md-4" > 
+            
+        
+	</div>
+</div>
+
+
+<div class="row" style="padding: 20px;">
+	<div class="col-md-4" >
+		
+	</div>
+
+	<div class="col-md-2">
+		<h4 class="btn btn-default btn-block btn" > Liked posts</h4>
+	</div>
+	<div class="col-md-2" >
+		<h4 class="btn btn-default btn-block btn">Created posts</h4>
+	</div>
+
+	<div class="col-md-4" >
+		
+	</div>
+</div>
+
+
+
+<div class="row" style="padding: 20px;">
+	<div class="col-md-2" >
+	
+	</div>
+
+	<div class="col-md-8" >
+<h3 class="text-center " style="color: #478ccf;">Posts:</h3>
+
+	</div>
+	
+
+	<div class="col-md-2" >
+
+	</div>
+	
+</div>
+{{end}}

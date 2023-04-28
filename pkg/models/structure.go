@@ -18,17 +18,15 @@ type Post struct {
 	Category string
 	Likes    int
 	Dislikes int
-	Reaction int
 }
 type Comment struct {
 	CommentId int
 	UserId    int
 	PostId    int
-	UserName  int
+	UserName  string
 	Text      string
 	Likes     int
 	Dislikes  int
-	Reaction  int
 }
 type User struct {
 	UserId   int
@@ -37,8 +35,8 @@ type User struct {
 	Password string
 }
 type Session struct {
-	SessionID      int
 	UserID         int
+	UserName       string
 	Token          string
 	ExpirationDate time.Time
 }

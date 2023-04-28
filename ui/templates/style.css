@@ -1,0 +1,23 @@
+.center{
+    display: flex;
+    justify-content: space-between;
+}
+.inline{
+    display: inline;
+}
+h4{
+    display: inline;
+}
+
+.optionfiltr{
+    color:#fff;
+    background:#369;
+}
+.category{
+    margin-right: 50px;
+}
+
+.btn.active {
+    background-color: red;
+    color: white;
+}

@@ -1,0 +1,44 @@
+{{ template "header" }}
+
+
+
+
+
+<div class="container">
+	<div class="col-xs-2">
+	</div>
+	<div class="col-xs-8">
+		<form role="form" method="POST" action="/SavePost">
+			<input type="hidden" name="id" value="{{.Id}}" />
+			<div class="form-group">
+				<label>Title</label>
+				<input type="text" class="form-control" id="title" name="title" value="{{.Title}}" />
+			</div>
+			<div class="form-group">
+				<label>Content</label>
+				<textarea id="content" name="content">{{.Content}}</textarea>
+			</div>
+			{{ if not .Id }}
+				<label class="checkbox-inline" style="padding-left: 0;">Choose category:  &nbsp;</label>
+				<input type="radio" class="category" name="category" value="golang" required> Golang
+				<input type="radio" class="category" name="category" value="js" required> JavaScript
+				<input type="radio" class="category" name="category" value="rust" required> Rust 
+				
+				<br>
+				<br>
+			{{ end }}
+			<button type="submit" name="send" value="send" class="btn btn-default center-block ">Send</button>
+
+
+		</form>
+
+	</div>
+	<div class="col-xs-2">
+		{{ if .Id }}
+		<a href="/delete?id={{.Id}}">Delete</a>
+		{{ end }}
+	</div>
+</div>
+
+
+

@@ -2,23 +2,16 @@ package handlers
 
 import (
 	"errors"
-	"github.com/google/uuid"
 	"net/http"
 	"testForum/pkg/models"
 	"time"
 )
 
-func (app *Application) middleWare(handle http.HandlerFunc) http.HandlerFunc {
+func (app *Application) MiddleWare(handle http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		cookie, err := r.Cookie("user_cookie")
+		cookie, err := r.Cookie("session_cookie")
 		if err != nil {
-			redirectToken := uuid.NewString()
-			http.SetCookie(w, &http.Cookie{
-				Name:    "redirect_cookie",
-				Value:   redirectToken,
-				Expires: time.Now().Add(2 * time.Minute),
-			})
-			http.Redirect(w, r, "/signIn", http.StatusTemporaryRedirect)
+			http.Redirect(w, r, "/signIn", http.StatusPermanentRedirect)
 			w.Write([]byte("Please login"))
 			return
 		}
@@ -26,7 +19,7 @@ func (app *Application) middleWare(handle http.HandlerFunc) http.HandlerFunc {
 		session, err := app.DB.GetUserIDByToken(token)
 		if err != nil {
 			if errors.Is(err, models.ErrNoRecord) {
-				http.Redirect(w, r, "/logout", http.StatusMovedPermanently)
+				http.Redirect(w, r, "/logout", http.StatusPermanentRedirect)
 				w.Write([]byte("There is no such session"))
 				return
 			}
@@ -41,14 +34,13 @@ func (app *Application) middleWare(handle http.HandlerFunc) http.HandlerFunc {
 					return
 				}
 			}
-			redirectToken := uuid.NewString()
-			http.SetCookie(w, &http.Cookie{
-				Name:    "redirect_cookie",
-				Value:   redirectToken,
-				Expires: time.Now().Add(2 * time.Minute),
-			})
-			http.Redirect(w, r, "/signin", http.StatusTemporaryRedirect)
+			http.Redirect(w, r, "/signin", http.StatusPermanentRedirect)
 			return
 		}
+		if session != nil && (r.URL.Path == "/signIn" || r.URL.Path == "/signup") {
+			http.Redirect(w, r, "/", http.StatusFound)
+			return
+		}
+		handle.ServeHTTP(w, r)
 	}
 }

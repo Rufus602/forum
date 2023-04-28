@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	addr := flag.String("addr", ":8000", "Сетевой адрес веб-страницы")
+	addr := flag.String("addr", ":4000", "Сетевой адрес веб-страницы")
 	flag.Parse()
 	infoLog, errorLog := handlers.LoggerCreater()
 	db, err := db.DB()

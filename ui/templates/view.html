@@ -5,14 +5,20 @@
 	<div class="col-xs-2">
 		
 	</div>
+
+	<div class="col-xs-8">
 	<div class=" panel panel-default">
 		<div class="panel-heading">
-		  <h3 class="panel-title "><a href="/edit?id={{$key}}"></a>{{$value.Title }}<br>Username</h3>
+		  <h3 class="panel-title" style="color: blue;"><a href="/edit?id={{$key}}">{{$value.Title }}</a>
+		  <h3 class="username" style="font-size: 15px;">@Username</h3>
+
 		</div>
 		<div class="panel-body">
 			{{ $value.Content }}
 		</div>
 	  </div>
+	</div>
+	
 	  
 	<!-- <div class="col-xs-8" style="background-color: rgb(95, 95, 95)" padding="2%">
 		<h1><a href="/edit?id={{$key}}"> {{$value.Title }}</a></h1>
@@ -22,6 +28,8 @@
 	<div class="col-xs-2">
 	</div>
 </div>
+
+
 <div class="row">
 	<div class="col-xs-2">
 	</div>
@@ -34,7 +42,7 @@
 
 
 {{ end }}
-{{ template "write" }}
+{{ template "comment" }}
 
 {{ template "footer" }}
 {{end}}
