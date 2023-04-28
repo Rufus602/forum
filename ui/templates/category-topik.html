@@ -1,0 +1,54 @@
+{{define "topik-theme"}}
+
+
+<div class="container">
+    <div class="col-xs-2">
+
+    </div>
+
+    <div class="col-xs-8">
+        <div class=" panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title" style="color: #478ccf;"><a href="/snippet?id={{.Id}}">Theme: {{.Title}}</a></h3>
+                {{if eq .Tags "golang"}}
+                <p>Category: Golang</p>
+                {{else if eq .Tags "js"}}
+                <p>Category: JavaScript</p>
+                {{else if eq .Tags "rust"}}
+                <p>Category: Rust</p>
+                {{else}}
+                <p>Category: {{.Tags}}</p>
+                {{end}}
+
+                <div class="pull-right">
+                    <form action="/post/like" method="POST">
+                        <input type="hidden" name="post_id" value="{{ .Id}}">
+                        <input type="hidden" name="action" value="like">
+                        <button class="pull-right glyphicon glyphicon-heart-empty" type="submit"> {{.Like}}
+                            Like</button>
+                    </form>
+
+                    <form action="/post/like" method="POST">
+                        <input type="hidden" name="post_id" value="{{ .Id }}">
+                        <input type="hidden" name="action" value="dislike">
+                        <button class="pull-right glyphicon glyphicon-heart " type="submit"> {{.Dislike}}
+                            Dislike</button>
+                    </form>
+                </div>
+                <h3 class="username" style="font-size: 15px;">Username: {{.UserName}}</h3>
+
+            </div>
+            <div class="panel-body">
+                {{.Description}}
+            </div>
+        </div>
+    </div>
+
+
+    <div class="col-xs-2">
+    </div>
+</div>
+{{end}}
+
+
+

@@ -1,4 +1,4 @@
-{{template "header" .}}
+{{template "header" }}
 
 
 
@@ -20,48 +20,11 @@
 	</div>
 </div>
 
-
 {{with .Post}}
-<div class="container">
-    <div class="col-xs-2">
 
-    </div>
-
-    <div class="col-xs-8">
-        <div class=" panel panel-default">
-            <div class="panel-heading">
-                <h3 class="panel-title" style="color: #478ccf;"><a href="/edit?id=">{{.Title}}</a></h3>
-                <div class="pull-right">
-                    <form action="/post/like" method="POST">
-                        <input type="hidden" name="post_id" value="{{ .Id}}">
-                        <input type="hidden" name="action" value="like">
-                        <button class="pull-right glyphicon glyphicon-heart-empty" type="submit"> {{.Like}} Like</button>
-                    </form>
-    
-                    <form action="/post/like" method="POST">
-                        <input type="hidden" name="post_id" value="{{ .Id }}">
-                        <input type="hidden" name="action" value="dislike">
-                        <button class="pull-right glyphicon glyphicon-heart " type="submit"> {{.Dislike}} Dislike</button>
-                    </form>
-                </div>
-                <h3 class="username" style="font-size: 15px;">@{{.UserName}}</h3>
-    
-            </div>
-            <div class="panel-body">
-                {{.Description}}
-            </div>
-        </div>
-    </div>
-
-
-    <div class="col-xs-2">
-    </div>
-</div>
-
-
-
-
+{{template "topik-theme" .}}
 {{end}}
+
 
 
 {{with .Comments}}
@@ -74,20 +37,23 @@
     <div class="col-xs-8">
         <div class=" panel panel-default">
             <div class="panel-heading">
+                <h3 class="panel-title" style="color: #478ccf;">Comment:</h3>
                 <div class="pull-right">
-                    <form action="/post/like" method="POST">
-                        <input type="hidden" name="post_id" value="{{ .Id}}">
+                    <form action="/comment/like" method="POST">
+                        <input type="hidden" name="post_id" value="{{ .PostId}}">
                         <input type="hidden" name="action" value="like">
+                        <input type="hidden" name="comment_id" value="{{.Id}}">
                         <button class="pull-right glyphicon glyphicon-heart-empty" type="submit "> {{.Like}} Like</button>
                     </form>
                     
-                    <form action="/post/like" method="POST">
-                        <input type="hidden" name="post_id" value="{{ .Id }}">
+                    <form action="/comment/like" method="POST">
+                        <input type="hidden" name="post_id" value="{{ .PostId }}">
                         <input type="hidden" name="action" value="dislike">
+                        <input type="hidden" name="comment_id" value="{{.Id}}">
                         <button class="pull-right glyphicon glyphicon-heart" type="submitglyphicon "> {{.Dislike}} Dislike</button>
                     </form>
                 </div>
-                <h3 class="username" style="font-size: 15px;">@{{.UserName}}</h3>
+                <h3 class="username" style="font-size: 15px;">Username: {{.UserName}}</h3>
     
             </div>
             <div class="panel-body">
@@ -98,13 +64,18 @@
 
 
     <div class="col-xs-2">
+     
     </div>
 </div>
 
 
 {{end}}
 {{end}}
-{{ template "comment" }}
+{{with .Post}}
+{{ template "comment" .}}
+{{end}}
+
+{{ template "footer" }}
 
 
 
