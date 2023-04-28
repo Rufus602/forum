@@ -11,6 +11,7 @@ import (
 )
 
 func (app *Application) redirect(w http.ResponseWriter, r *http.Request) {
+	r.Method = http.MethodGet
 	http.Redirect(w, r, "/signIn", http.StatusPermanentRedirect)
 	w.Write([]byte("loginFirst"))
 	return
@@ -29,12 +30,63 @@ func (app *Application) checkerSession(w http.ResponseWriter, r *http.Request) (
 				Value:   "",
 				Expires: time.Now(),
 			})
+			app.redirect(w, r)
 		} else {
 			return nil, err
 		}
-
 	}
 	return session, nil
+}
+
+/*############################################################################################################*/
+
+/*############################################################################################################*/
+func (app *Application) CreatePostPost(w http.ResponseWriter, r *http.Request) {
+	session, err := app.checkerSession(w, r)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+	if session == nil {
+		app.redirect(w, r)
+		return
+	}
+	post := models.Post{
+		UserId:   session.UserID,
+		UserName: session.UserName,
+		Text:     r.FormValue("text"),
+		Category: r.FormValue("category"),
+
+		Title: r.FormValue("title"),
+	}
+	err = app.DB.InsertPost(post)
+	if err != nil {
+		app.serverError(w, err)
+	}
+	r.Method = http.MethodGet
+	url := fmt.Sprintf("/createPost")
+	http.Redirect(w, r, url, http.StatusPermanentRedirect)
+
+}
+func (app *Application) CreatePostGet(w http.ResponseWriter, r *http.Request, s []string) {
+	session, err := app.checkerSession(w, r)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+	if session == nil {
+		app.redirect(w, r)
+		return
+	}
+	templates, err := template.ParseFiles(s...)
+	if err != nil {
+		app.serverError(w, err)
+	}
+	if err := templates.Execute(w, nil); err != nil {
+		app.serverError(w, err)
+		return
+	}
+	return
 }
 
 func (app *Application) HomeGet(w http.ResponseWriter, r *http.Request, s []string) {
@@ -339,3 +391,5 @@ func (app *Application) CreatedPostGet(w http.ResponseWriter, r *http.Request, s
 	}
 	return
 }
+
+/*############################################################################################################*/

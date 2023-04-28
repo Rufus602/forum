@@ -13,7 +13,16 @@ import (
 var errorMessage = ErrMessage{Err: "There is no such user. Maybe incorrect username or password, or you did not register"}
 
 func (app *Application) createPost(w http.ResponseWriter, r *http.Request) {
-
+	if r.Method == http.MethodPost {
+		app.CreatePostPost(w, r)
+	} else if r.Method == http.MethodGet {
+		strings := []string{"./ui/templates/header.gohtml", "./ui/templates/createPost.gohtml"}
+		app.CreatePostGet(w, r, strings)
+	} else {
+		w.Header().Set("Allow", http.MethodGet+", "+http.MethodPost)
+		app.notFound(w)
+	}
+	return
 }
 func (app *Application) signIn(w http.ResponseWriter, r *http.Request) {
 	temp, err := template.ParseFiles("./ui/templates/signin.html", "./ui/templates/header.html")
@@ -59,6 +68,8 @@ func (app *Application) signIn(w http.ResponseWriter, r *http.Request) {
 func (app *Application) signUp(w http.ResponseWriter, r *http.Request) {
 }
 func (app *Application) logout(w http.ResponseWriter, r *http.Request) {
+	err := app.checkerSession(w, r)
+
 }
 
 /*############################################################################################################*/
