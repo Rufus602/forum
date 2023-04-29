@@ -339,7 +339,6 @@ func (app *Application) HomeGet(w http.ResponseWriter, r *http.Request, s []stri
 	structure.Tag = tag
 
 	if tag == "" {
-
 		structure.Posts, err = app.DB.GetPostAll()
 
 		if err != nil {
@@ -352,6 +351,7 @@ func (app *Application) HomeGet(w http.ResponseWriter, r *http.Request, s []stri
 		}
 
 	} else if tag != "" {
+		fmt.Println(tag)
 		if tag == "golang" || tag == "rust" || tag == "js" {
 			structure.Posts, err = app.DB.GetPostCategories(tag)
 			if err != nil {
