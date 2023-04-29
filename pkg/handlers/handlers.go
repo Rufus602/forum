@@ -22,10 +22,10 @@ func (app *Application) signIn(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *Application) signUp(w http.ResponseWriter, r *http.Request) {
+	strings := []string{"./ui/templates/signup.html", "./ui/templates/header.html", "./ui/templates/footer.html"}
 	if r.Method == http.MethodPost {
-		app.SignUpPost(w, r)
+		app.SignUpPost(w, r, strings)
 	} else if r.Method == http.MethodGet {
-		strings := []string{"./ui/templates/signup.html", "./ui/templates/header.html", "./ui/templates/footer.html"}
 		app.SignUpGet(w, r, strings)
 	} else {
 		w.Header().Set("Allow", http.MethodGet+", "+http.MethodPost)
@@ -100,6 +100,10 @@ func (app *Application) createdPosts(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *Application) home(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/" {
+		app.notFound(w)
+		return
+	}
 	if r.Method != http.MethodGet {
 		w.Header().Set("Allow", http.MethodGet)
 		app.notFound(w)

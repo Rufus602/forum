@@ -4,11 +4,68 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"regexp"
 	"strconv"
+	"strings"
 	"testForum/pkg/models"
 	"text/template"
 	"time"
 )
+
+var (
+	ErrInvalidEmail    = errors.New("invalid email address")
+	ErrInvalidPassword = errors.New("invalid password")
+	ErrInvalidUsername = errors.New("invalid username")
+)
+
+func checkUserInfo(user models.User) error {
+	if !regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`).MatchString(user.Gmail) {
+		return ErrInvalidEmail
+	}
+
+	for _, w := range user.UserName {
+		if w < 32 || w > 126 {
+			return ErrInvalidUsername
+		}
+	}
+
+	if !checkPassword(user.Password) {
+		return ErrInvalidPassword
+	}
+
+	return nil
+}
+
+func checkPassword(password string) bool {
+	numbers := "0123456789"
+	lowerCase := "qwertyuiopasdfghjklzxcvbnm"
+	upperCase := "QWERTYUIOPASDFGHJKLZXCVBNM"
+	symbols := "!@#$%^&*()_-+={[}]|\\:;<,>.?/"
+
+	if len(password) < 8 || len(password) > 20 {
+		return false
+	}
+
+	if !contains(password, numbers) || !contains(password, lowerCase) || !contains(password, upperCase) || !contains(password, symbols) {
+		return false
+	}
+
+	for _, w := range symbols {
+		if w < 32 || w > 126 {
+			return false
+		}
+	}
+	return true
+}
+
+func contains(s, checkSymbols string) bool {
+	for _, w := range checkSymbols {
+		if strings.Contains(s, string(w)) {
+			return true
+		}
+	}
+	return false
+}
 
 var errorMessage = "There is no such user. Maybe incorrect username or password, or you did not register"
 
@@ -45,7 +102,7 @@ func (app *Application) checkerSession(w http.ResponseWriter, r *http.Request) (
 
 /*############################################################################################################*/
 
-func (app *Application) SignUpPost(w http.ResponseWriter, r *http.Request) {
+func (app *Application) SignUpPost(w http.ResponseWriter, r *http.Request, s []string) {
 	session, err := app.checkerSession(w, r)
 	if err != nil {
 
@@ -62,13 +119,27 @@ func (app *Application) SignUpPost(w http.ResponseWriter, r *http.Request) {
 		Gmail:    r.FormValue("email"),
 		Password: r.FormValue("password"),
 	}
+	if err = checkUserInfo(user); err != nil {
+		r.Method = http.MethodGet
+		structure := TemplateStructure{Err: err.Error()}
+
+		templates, err := template.ParseFiles(s...)
+		if err != nil {
+			app.serverError(w, err)
+		}
+		if err := templates.Execute(w, structure); err != nil {
+			app.serverError(w, err)
+			return
+		}
+		return
+	}
 
 	err = app.DB.InsertUser(user)
 	if err != nil {
 		app.serverError(w, err)
 	}
 	r.Method = http.MethodGet
-	http.Redirect(w, r, "/signin", http.StatusSeeOther)
+	app.signIn(w, r)
 	return
 }
 
