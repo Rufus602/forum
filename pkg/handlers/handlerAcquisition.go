@@ -68,7 +68,7 @@ func (app *Application) SignUpPost(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, err)
 	}
 	r.Method = http.MethodGet
-	http.Redirect(w, r, "/signin", http.StatusMovedPermanently)
+	http.Redirect(w, r, "/signin", http.StatusSeeOther)
 	return
 }
 
@@ -380,16 +380,15 @@ func (app *Application) PostGet(w http.ResponseWriter, r *http.Request, s []stri
 		url := fmt.Sprintf("/post?postId=%s", postIdStr)
 		http.Redirect(w, r, url, http.StatusSeeOther)
 	} else if action == "reactionComment" {
-		fmt.Println("tut")
+
 		if session != nil {
 			commentIdStr := r.URL.Query().Get("commentId")
 			commentId, err := strconv.Atoi(commentIdStr)
-			fmt.Println(commentId)
-			fmt.Println(postId)
+
 			if err == nil {
 				reaction, err := strconv.Atoi(reactStr)
 				if err == nil {
-					fmt.Println("here")
+
 					err = app.DB.ReactComment(session.UserID, commentId, reaction)
 					if err != nil {
 						app.serverError(w, err)

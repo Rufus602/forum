@@ -1,5 +1,5 @@
 {{template "header" }}
-{{template "buttons"}}
+
 <div class="row" style="padding: 20px;">
 	<div class="col-md-2" >
 	
@@ -18,12 +18,12 @@
 </div>
 
 
-{{if .Posts}}
-{{range .Posts}}
+{{if .}}
+
 
 {{template "topik-theme" .}}
 
-{{end}}
+
 {{else}}
 <p class="text-center">  Тут пока ничего нет <a href="/snippet/create" > Создать </a></p>
 {{end}}

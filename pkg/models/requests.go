@@ -225,7 +225,7 @@ func (m *Model) ReactComment(userId int, commentId int, reaction int) error {
 		return err
 	}
 	if result == reaction {
-		_, err := m.DB.Exec("DELETE FROM CommentReactions WHERE comment_id = $1 AND comment_id = $2", commentId, userId)
+		_, err := m.DB.Exec("DELETE FROM CommentReactions WHERE comment_id = $1 AND user_id = $2", commentId, userId)
 		if err != nil {
 			return err
 		}
@@ -242,6 +242,7 @@ func (m *Model) ReactComment(userId int, commentId int, reaction int) error {
 			return err
 		}
 	}
+
 	return nil
 }
 

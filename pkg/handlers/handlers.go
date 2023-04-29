@@ -79,7 +79,13 @@ func (app *Application) likedPosts(w http.ResponseWriter, r *http.Request) {
 		app.notFound(w)
 		return
 	}
-	strings := []string{"./ui/templates/header.gohtml", "./ui/templates/posts.gohtml"}
+	strings := []string{
+		"./ui/templates/header.html",
+
+		"./ui/templates/buttons.html",
+
+		"./ui/templates/footer.html",
+	}
 	app.LikedPostGet(w, r, strings)
 	return
 }
@@ -90,7 +96,13 @@ func (app *Application) createdPosts(w http.ResponseWriter, r *http.Request) {
 		app.notFound(w)
 		return
 	}
-	strings := []string{"./ui/templates/header.gohtml", "./ui/templates/posts.gohtml"}
+	strings := []string{
+		"./ui/templates/header.html",
+		"./ui/templates/buttons.html",
+		"./ui/templates/category-topik.html",
+
+		"./ui/templates/footer.html",
+	}
 	app.CreatedPostGet(w, r, strings)
 	return
 }
