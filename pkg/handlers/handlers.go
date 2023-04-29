@@ -91,7 +91,7 @@ func (app *Application) home(w http.ResponseWriter, r *http.Request) {
 		app.notFound(w)
 		return
 	}
-	strings := []string{"./ui/templates/header.gohtml", "./ui/templates/category.gohtml", "./ui/templates/posts.gohtml"}
+	strings := []string{"./ui/templates/header.html", "./ui/templates/category.html", "./ui/templates/posts.html"}
 	app.HomeGet(w, r, strings)
 	return
 }

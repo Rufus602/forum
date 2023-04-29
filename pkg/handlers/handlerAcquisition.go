@@ -10,11 +10,11 @@ import (
 	"time"
 )
 
-var errorMessage = ErrMessage{Err: "There is no such user. Maybe incorrect username or password, or you did not register"}
+var errorMessage = "There is no such user. Maybe incorrect username or password, or you did not register"
 
 func (app *Application) redirect(w http.ResponseWriter, r *http.Request) {
 	r.Method = http.MethodGet
-	http.Redirect(w, r, "/signIn", http.StatusPermanentRedirect)
+	http.Redirect(w, r, "/signin", http.StatusPermanentRedirect)
 	if _, err := w.Write([]byte("loginFirst")); err != nil {
 		app.serverError(w, err)
 	}
@@ -66,7 +66,7 @@ func (app *Application) SignUpPost(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, err)
 	}
 	r.Method = http.MethodGet
-	http.Redirect(w, r, "/signIn", http.StatusPermanentRedirect)
+	http.Redirect(w, r, "/signin", http.StatusPermanentRedirect)
 	return
 }
 func (app *Application) SignUpGet(w http.ResponseWriter, r *http.Request, s []string) {
@@ -80,11 +80,15 @@ func (app *Application) SignUpGet(w http.ResponseWriter, r *http.Request, s []st
 		http.Redirect(w, r, "/logout", http.StatusPermanentRedirect)
 		return
 	}
+	structure := TemplateStructure{}
+	if session != nil {
+		structure.Signed = true
+	}
 	templates, err := template.ParseFiles(s...)
 	if err != nil {
 		app.serverError(w, err)
 	}
-	if err := templates.Execute(w, nil); err != nil {
+	if err := templates.Execute(w, structure); err != nil {
 		app.serverError(w, err)
 		return
 	}
@@ -110,11 +114,15 @@ func (app *Application) SignInPost(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if errors.Is(err, models.ErrNoRecord) {
 			r.Method = http.MethodGet
+			structure := TemplateStructure{Err: errorMessage}
+			if session != nil {
+				structure.Signed = true
+			}
 			templates, err := template.ParseFiles("./ui/templates/signin.html", "./ui/templates/header.html")
 			if err != nil {
 				app.serverError(w, err)
 			}
-			if err := templates.Execute(w, errorMessage); err != nil {
+			if err := templates.Execute(w, structure); err != nil {
 				app.serverError(w, err)
 				return
 			}
@@ -163,6 +171,7 @@ func (app *Application) CreatePostPost(w http.ResponseWriter, r *http.Request) {
 		app.redirect(w, r)
 		return
 	}
+
 	post := models.Post{
 		UserId:   session.UserID,
 		UserName: session.UserName,
@@ -194,7 +203,11 @@ func (app *Application) CreatePostGet(w http.ResponseWriter, r *http.Request, s 
 	if err != nil {
 		app.serverError(w, err)
 	}
-	if err := templates.Execute(w, nil); err != nil {
+	structure := TemplateStructure{}
+	if session != nil {
+		structure.Signed = true
+	}
+	if err := templates.Execute(w, structure); err != nil {
 		app.serverError(w, err)
 		return
 	}
@@ -266,6 +279,12 @@ func (app *Application) HomeGet(w http.ResponseWriter, r *http.Request, s []stri
 	templates, err := template.ParseFiles(s...)
 	if err != nil {
 		app.serverError(w, err)
+	}
+	if session != nil {
+		structure.Signed = true
+	}
+	if structure.Posts == nil {
+		structure.Err = "There is no posts yet"
 	}
 	if err := templates.Execute(w, structure); err != nil {
 		app.serverError(w, err)
@@ -363,7 +382,9 @@ func (app *Application) PostGet(w http.ResponseWriter, r *http.Request, s []stri
 		http.Redirect(w, r, url, http.StatusPermanentRedirect)
 	}
 	structure := TemplateStructure{}
-
+	if session != nil {
+		structure.Signed = true
+	}
 	structure.Post, err = app.DB.GetPost(postId)
 	if err != nil {
 		if errors.Is(err, models.ErrNoRecord) {
@@ -427,6 +448,12 @@ func (app *Application) LikedPostGet(w http.ResponseWriter, r *http.Request, s [
 		http.Redirect(w, r, "/likedPosts", http.StatusPermanentRedirect)
 	}
 	structure := TemplateStructure{}
+	if session != nil {
+		structure.Signed = true
+	}
+	if structure.Posts == nil {
+		structure.Err = "There is no posts yet"
+	}
 
 	structure.Posts, err = app.DB.GetPostLiked(session.UserID)
 	if err != nil {
@@ -483,7 +510,12 @@ func (app *Application) CreatedPostGet(w http.ResponseWriter, r *http.Request, s
 		http.Redirect(w, r, "/createdPosts", http.StatusPermanentRedirect)
 	}
 	structure := TemplateStructure{}
-
+	if session != nil {
+		structure.Signed = true
+	}
+	if structure.Posts == nil {
+		structure.Err = "There is no posts yet"
+	}
 	structure.Posts, err = app.DB.GetPostCreated(session.UserID)
 	if err != nil {
 		if errors.Is(err, models.ErrNoRecord) {

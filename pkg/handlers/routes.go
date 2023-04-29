@@ -10,7 +10,7 @@ func (app *Application) Routes() *http.ServeMux {
 	mux.HandleFunc("/createPost", app.MiddleWare(app.createPost))
 	mux.HandleFunc("/createdPosts", app.MiddleWare(app.createdPosts))
 	mux.HandleFunc("/likedPosts", app.MiddleWare(app.likedPosts))
-	mux.HandleFunc("/signIn", app.signIn)
+	mux.HandleFunc("/signin", app.signIn)
 	mux.HandleFunc("/signup", app.signUp)
 	mux.HandleFunc("/logout", app.logout)
 	mux.HandleFunc("/post", app.post)
