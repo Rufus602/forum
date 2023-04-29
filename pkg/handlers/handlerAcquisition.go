@@ -447,6 +447,7 @@ func (app *Application) LikedPostGet(w http.ResponseWriter, r *http.Request, s [
 		app.serverError(w, err)
 		return
 	}
+
 	action := r.URL.Query().Get("action")
 	postIdStr := r.URL.Query().Get("postId")
 	reactStr := r.URL.Query().Get("reaction")
@@ -509,6 +510,7 @@ func (app *Application) CreatedPostGet(w http.ResponseWriter, r *http.Request, s
 		app.serverError(w, err)
 		return
 	}
+
 	action := r.URL.Query().Get("action")
 	postIdStr := r.URL.Query().Get("postId")
 	reactStr := r.URL.Query().Get("reaction")
