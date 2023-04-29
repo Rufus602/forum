@@ -155,9 +155,6 @@ func (app *Application) SignUpGet(w http.ResponseWriter, r *http.Request, s []st
 		return
 	}
 	structure := TemplateStructure{}
-	if session != nil {
-		structure.Signed = true
-	}
 	templates, err := template.ParseFiles(s...)
 	if err != nil {
 		app.serverError(w, err)
@@ -190,15 +187,12 @@ func (app *Application) SignInPost(w http.ResponseWriter, r *http.Request) {
 	session, err = app.DB.GetUser(username, password)
 	if err != nil {
 		if errors.Is(err, models.ErrNoRecord) {
-			structure := TemplateStructure{Err: errorMessage}
-			if session != nil {
-				structure.Signed = true
-			}
+
 			templates, err := template.ParseFiles("./ui/templates/signin.html", "./ui/templates/header.html", "./ui/templates/footer.html")
 			if err != nil {
 				app.serverError(w, err)
 			}
-			if err := templates.Execute(w, structure); err != nil {
+			if err := templates.Execute(w, nil); err != nil {
 				app.serverError(w, err)
 				return
 			}
@@ -235,7 +229,12 @@ func (app *Application) SignInGet(w http.ResponseWriter, r *http.Request, s []st
 	if err != nil {
 		app.serverError(w, err)
 	}
-	if err := templates.Execute(w, nil); err != nil {
+
+	structure := TemplateStructure{}
+	if session != nil {
+		structure.Signed = true
+	}
+	if err := templates.Execute(w, structure); err != nil {
 		app.serverError(w, err)
 		return
 	}
@@ -338,6 +337,7 @@ func (app *Application) HomeGet(w http.ResponseWriter, r *http.Request, s []stri
 	}
 	structure := TemplateStructure{}
 	structure.Tag = tag
+
 	if tag == "" {
 
 		structure.Posts, err = app.DB.GetPostAll()

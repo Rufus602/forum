@@ -26,7 +26,7 @@ func main() {
 		ErrorLog: errorLog,
 		Handler:  app.Routes(),
 	}
-	infoLog.Printf("Запуск сервера на http://localhost%s", *addr)
+	infoLog.Printf("Server listening on http://localhost%s", *addr)
 	err = srv.ListenAndServe()
 	errorLog.Fatal(err)
 }
