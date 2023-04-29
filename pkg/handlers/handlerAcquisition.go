@@ -13,9 +13,9 @@ import (
 )
 
 var (
-	ErrInvalidEmail    = errors.New("invalid email address")
-	ErrInvalidPassword = errors.New("invalid password")
-	ErrInvalidUsername = errors.New("invalid username")
+	ErrInvalidEmail    = errors.New("Email must consists from letters, at and dot")
+	ErrInvalidPassword = errors.New("Password have to contain at least 8 characters but no more than 20; include number, lowercase, uppercase and symbol")
+	ErrInvalidUsername = errors.New("Name must consists from letters")
 )
 
 func checkUserInfo(user models.User) error {
