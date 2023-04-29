@@ -19,6 +19,7 @@ type Post struct {
 	Likes    int
 	Dislikes int
 }
+
 type Comment struct {
 	CommentId int
 	UserId    int
@@ -28,16 +29,21 @@ type Comment struct {
 	Likes     int
 	Dislikes  int
 }
+
 type User struct {
 	UserId   int
 	UserName string
 	Gmail    string
 	Password string
 }
+
 type Session struct {
 	UserID         int
 	UserName       string
 	Token          string
 	ExpirationDate time.Time
 }
-type Category int
+
+type Signed struct {
+	Sign bool
+}

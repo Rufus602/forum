@@ -1,5 +1,5 @@
 
-{{ template "header" }}
+{{ template "header" . }}
 
 {{template "buttons"}}
 <div class="row" style="padding: 20px;">
@@ -49,5 +49,6 @@
 {{else}}
 <p class="text-center">  Тут пока ничего нет <a href="/createPost" > Создать </a></p>
 {{ end }}
+
 
 {{ template "footer" }}

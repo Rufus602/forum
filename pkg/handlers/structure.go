@@ -3,7 +3,7 @@ package handlers
 import "testForum/pkg/models"
 
 type TemplateStructure struct {
-	Signed   bool
+	Signed   *models.Signed
 	User     *models.User
 	Post     *models.Post
 	Posts    []*models.Post

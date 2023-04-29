@@ -51,15 +51,19 @@
                     <ul class="nav navbar-nav ">
                        
                         <li><a href="/">Home</a></li>
+                        {{if .Signed}}
                         <li name="high"><a href="/createPost">Create post</a></li>
                         <!-- <li name="high"><a href="/view?theme=test">Create post</a></li> -->
                         <li name="high"><a href="/createdPosts">Your posts</a></li>
                         <li name="high"><a href="/likedPosts">Liked posts</a></li>
-                       
-                        
-                        <li type="submit" name="signin" value="signin"><a href="/signin"> Sign in</a></li>
-                        
                         <li type="submit" name="signout" value="signout"><a href="/logout"> Log out</a></li>
+                       {{else}}
+                       <li type="submit" name="signin" value="signin"><a href="/signin"> Sign in</a></li>
+                       {{end}}
+                        
+                        
+                        
+                      
                         
                         
                     </ul>

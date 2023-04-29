@@ -41,7 +41,8 @@ func (app *Application) logout(w http.ResponseWriter, r *http.Request) {
 		Expires: time.Now().Add(-1 * time.Minute),
 	})
 
-	app.home(w, r)
+	r.Method = http.MethodGet
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 	return
 }
 

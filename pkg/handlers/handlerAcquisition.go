@@ -232,7 +232,7 @@ func (app *Application) SignInGet(w http.ResponseWriter, r *http.Request, s []st
 
 	structure := TemplateStructure{}
 	if session != nil {
-		structure.Signed = true
+		structure.Signed = &models.Signed{true}
 	}
 	if err := templates.Execute(w, structure); err != nil {
 		app.serverError(w, err)
@@ -289,7 +289,7 @@ func (app *Application) CreatePostGet(w http.ResponseWriter, r *http.Request, s 
 	}
 	structure := TemplateStructure{}
 	if session != nil {
-		structure.Signed = true
+		structure.Signed = &models.Signed{true}
 	}
 	if err := templates.Execute(w, structure); err != nil {
 		app.serverError(w, err)
@@ -372,7 +372,7 @@ func (app *Application) HomeGet(w http.ResponseWriter, r *http.Request, s []stri
 		app.serverError(w, err)
 	}
 	if session != nil {
-		structure.Signed = true
+		structure.Signed = &models.Signed{true}
 	}
 	if structure.Posts == nil {
 		structure.Err = "There is no posts yet"
@@ -488,7 +488,7 @@ func (app *Application) PostGet(w http.ResponseWriter, r *http.Request, s []stri
 	}
 	structure := TemplateStructure{}
 	if session != nil {
-		structure.Signed = true
+		structure.Signed = &models.Signed{true}
 	}
 	structure.Post, err = app.DB.GetPost(postId)
 	if err != nil {
@@ -556,7 +556,7 @@ func (app *Application) LikedPostGet(w http.ResponseWriter, r *http.Request, s [
 	}
 	structure := TemplateStructure{}
 	if session != nil {
-		structure.Signed = true
+		structure.Signed = &models.Signed{true}
 	}
 	if structure.Posts == nil {
 		structure.Err = "There is no posts yet"
@@ -619,7 +619,7 @@ func (app *Application) CreatedPostGet(w http.ResponseWriter, r *http.Request, s
 	}
 	structure := TemplateStructure{}
 	if session != nil {
-		structure.Signed = true
+		structure.Signed = &models.Signed{true}
 	}
 	if structure.Posts == nil {
 		structure.Err = "There is no posts yet"
