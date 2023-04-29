@@ -15,9 +15,6 @@ var errorMessage = "There is no such user. Maybe incorrect username or password,
 func (app *Application) redirect(w http.ResponseWriter, r *http.Request) {
 	r.Method = http.MethodGet
 
-	if _, err := w.Write([]byte("loginFirst")); err != nil {
-		app.serverError(w, err)
-	}
 	app.signIn(w, r)
 	return
 }
@@ -25,7 +22,10 @@ func (app *Application) redirect(w http.ResponseWriter, r *http.Request) {
 func (app *Application) checkerSession(w http.ResponseWriter, r *http.Request) (*models.Session, error) {
 	token, err := r.Cookie("session_token")
 	if err != nil {
-		return nil, nil
+		if errors.Is(err, http.ErrNoCookie) {
+			return nil, nil
+		}
+		return nil, err
 	}
 	session, err := app.DB.GetUserIDByToken(token.Value)
 	if err != nil {
@@ -33,9 +33,8 @@ func (app *Application) checkerSession(w http.ResponseWriter, r *http.Request) (
 			http.SetCookie(w, &http.Cookie{
 				Name:    "session_token",
 				Value:   "",
-				Expires: time.Now(),
+				Expires: time.Now().Add(-1 * time.Minute),
 			})
-			app.redirect(w, r)
 			return nil, nil
 		} else {
 			return nil, err
@@ -49,12 +48,13 @@ func (app *Application) checkerSession(w http.ResponseWriter, r *http.Request) (
 func (app *Application) SignUpPost(w http.ResponseWriter, r *http.Request) {
 	session, err := app.checkerSession(w, r)
 	if err != nil {
+
 		app.serverError(w, err)
 		return
 	}
 	if session != nil {
 		r.Method = http.MethodGet
-		http.Redirect(w, r, "/logout", http.StatusPermanentRedirect)
+		app.logout(w, r)
 		return
 	}
 	user := models.User{
@@ -149,14 +149,17 @@ func (app *Application) SignInPost(w http.ResponseWriter, r *http.Request) {
 func (app *Application) SignInGet(w http.ResponseWriter, r *http.Request, s []string) {
 	session, err := app.checkerSession(w, r)
 	if err != nil {
+
 		app.serverError(w, err)
 		return
 	}
+
 	if session != nil {
 		r.Method = http.MethodGet
 		app.logout(w, r)
 		return
 	}
+
 	templates, err := template.ParseFiles(s...)
 	if err != nil {
 		app.serverError(w, err)
@@ -176,6 +179,7 @@ func (app *Application) CreatePostPost(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, err)
 		return
 	}
+
 	if session == nil {
 		app.redirect(w, r)
 		return
@@ -194,6 +198,7 @@ func (app *Application) CreatePostPost(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, err)
 	}
 	r.Method = http.MethodGet
+
 	app.createPost(w, r)
 	return
 }
@@ -314,11 +319,17 @@ func (app *Application) PostPost(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, err)
 		return
 	}
+	if session == nil {
+		app.signIn(w, r)
+		return
+	}
+
 	comment := models.Comment{
 		UserId:   session.UserID,
 		UserName: session.UserName,
 		Text:     r.FormValue("text"),
 	}
+
 	postIdStr := r.URL.Query().Get("postId")
 	if postIdStr == "" {
 		app.clientError(w, http.StatusNotFound)
@@ -329,7 +340,8 @@ func (app *Application) PostPost(w http.ResponseWriter, r *http.Request) {
 		app.clientError(w, http.StatusNotFound)
 		return
 	}
-	if err = app.DB.InsertComment(postId, comment.UserId, comment.UserName, comment.Text); err != nil {
+	if comment.Text == "" {
+	} else if err = app.DB.InsertComment(postId, comment.UserId, comment.UserName, comment.Text); err != nil {
 		app.serverError(w, err)
 		return
 	}

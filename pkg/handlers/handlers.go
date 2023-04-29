@@ -35,23 +35,13 @@ func (app *Application) signUp(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *Application) logout(w http.ResponseWriter, r *http.Request) {
-	session, err := app.checkerSession(w, r)
-	if err != nil {
-		app.serverError(w, err)
-	}
-	if session != nil {
-		if err = app.DB.DeleteToken(session.Token); err != nil {
-			app.serverError(w, err)
-			return
-		}
-		http.SetCookie(w, &http.Cookie{
-			Name:    "session_token",
-			Value:   "",
-			Expires: time.Now(),
-		})
-	}
+	http.SetCookie(w, &http.Cookie{
+		Name:    "session_token",
+		Value:   "",
+		Expires: time.Now().Add(-1 * time.Minute),
+	})
 
-	http.Redirect(w, r, "/", http.StatusPermanentRedirect)
+	app.home(w, r)
 	return
 }
 
