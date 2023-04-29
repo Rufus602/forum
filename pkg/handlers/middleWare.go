@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"testForum/pkg/models"
 	"time"
@@ -9,10 +10,12 @@ import (
 
 func (app *Application) MiddleWare(handle http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		cookie, err := r.Cookie("session_cookie")
+		cookie, err := r.Cookie("session_token")
 		if err != nil {
-			http.Redirect(w, r, "/signIn", http.StatusPermanentRedirect)
+			fmt.Println("1")
+			http.Redirect(w, r, "/signin", http.StatusPermanentRedirect)
 			if _, err = w.Write([]byte("Please login")); err != nil {
+				fmt.Println("2")
 				app.serverError(w, err)
 			}
 			return
@@ -20,6 +23,7 @@ func (app *Application) MiddleWare(handle http.HandlerFunc) http.HandlerFunc {
 		token := cookie.Value
 		session, err := app.DB.GetUserIDByToken(token)
 		if err != nil {
+			fmt.Println("3")
 			if errors.Is(err, models.ErrNoRecord) {
 				http.Redirect(w, r, "/logout", http.StatusPermanentRedirect)
 				if _, err = w.Write([]byte("There is no such session")); err != nil {
@@ -34,6 +38,7 @@ func (app *Application) MiddleWare(handle http.HandlerFunc) http.HandlerFunc {
 			if session != nil {
 				err = app.DB.DeleteToken(token)
 				if err != nil {
+					fmt.Println("4")
 					app.serverError(w, err)
 					return
 				}
@@ -41,7 +46,8 @@ func (app *Application) MiddleWare(handle http.HandlerFunc) http.HandlerFunc {
 			http.Redirect(w, r, "/signin", http.StatusPermanentRedirect)
 			return
 		}
-		if session != nil && (r.URL.Path == "/signIn" || r.URL.Path == "/signup") {
+		if session != nil && (r.URL.Path == "/signin" || r.URL.Path == "/signup") {
+			fmt.Println("5")
 			http.Redirect(w, r, "/", http.StatusFound)
 			return
 		}

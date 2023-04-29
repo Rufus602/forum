@@ -14,10 +14,11 @@ var errorMessage = "There is no such user. Maybe incorrect username or password,
 
 func (app *Application) redirect(w http.ResponseWriter, r *http.Request) {
 	r.Method = http.MethodGet
-	http.Redirect(w, r, "/signin", http.StatusPermanentRedirect)
+
 	if _, err := w.Write([]byte("loginFirst")); err != nil {
 		app.serverError(w, err)
 	}
+	app.signIn(w, r)
 	return
 }
 
@@ -35,6 +36,7 @@ func (app *Application) checkerSession(w http.ResponseWriter, r *http.Request) (
 				Expires: time.Now(),
 			})
 			app.redirect(w, r)
+			return nil, nil
 		} else {
 			return nil, err
 		}
@@ -60,15 +62,17 @@ func (app *Application) SignUpPost(w http.ResponseWriter, r *http.Request) {
 		Gmail:    r.FormValue("email"),
 		Password: r.FormValue("password"),
 	}
+	fmt.Println(user.UserName)
 
 	err = app.DB.InsertUser(user)
 	if err != nil {
 		app.serverError(w, err)
 	}
 	r.Method = http.MethodGet
-	http.Redirect(w, r, "/signin", http.StatusPermanentRedirect)
+	http.Redirect(w, r, "/signin", http.StatusMovedPermanently)
 	return
 }
+
 func (app *Application) SignUpGet(w http.ResponseWriter, r *http.Request, s []string) {
 	session, err := app.checkerSession(w, r)
 	if err != nil {
@@ -77,7 +81,7 @@ func (app *Application) SignUpGet(w http.ResponseWriter, r *http.Request, s []st
 	}
 	if session != nil {
 		r.Method = http.MethodGet
-		http.Redirect(w, r, "/logout", http.StatusPermanentRedirect)
+		app.logout(w, r)
 		return
 	}
 	structure := TemplateStructure{}
@@ -103,22 +107,24 @@ func (app *Application) SignInPost(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, err)
 		return
 	}
+	// r.Method = http.MethodGet
 	if session != nil {
-		r.Method = http.MethodGet
-		http.Redirect(w, r, "/logout", http.StatusPermanentRedirect)
+
+		app.logout(w, r)
 		return
 	}
+
 	username := r.FormValue("username")
 	password := r.FormValue("password")
+
 	session, err = app.DB.GetUser(username, password)
 	if err != nil {
 		if errors.Is(err, models.ErrNoRecord) {
-			r.Method = http.MethodGet
 			structure := TemplateStructure{Err: errorMessage}
 			if session != nil {
 				structure.Signed = true
 			}
-			templates, err := template.ParseFiles("./ui/templates/signin.html", "./ui/templates/header.html")
+			templates, err := template.ParseFiles("./ui/templates/signin.html", "./ui/templates/header.html", "./ui/templates/footer.html")
 			if err != nil {
 				app.serverError(w, err)
 			}
@@ -136,9 +142,11 @@ func (app *Application) SignInPost(w http.ResponseWriter, r *http.Request) {
 		Value:   session.Token,
 		Expires: session.ExpirationDate,
 	})
-	http.Redirect(w, r, "/", http.StatusPermanentRedirect)
+	r.Method = http.MethodGet
+	http.Redirect(w, r, "/", http.StatusMovedPermanently)
 	return
 }
+
 func (app *Application) SignInGet(w http.ResponseWriter, r *http.Request, s []string) {
 	session, err := app.checkerSession(w, r)
 	if err != nil {
@@ -147,7 +155,7 @@ func (app *Application) SignInGet(w http.ResponseWriter, r *http.Request, s []st
 	}
 	if session != nil {
 		r.Method = http.MethodGet
-		http.Redirect(w, r, "/logout", http.StatusPermanentRedirect)
+		app.logout(w, r)
 		return
 	}
 	templates, err := template.ParseFiles(s...)
@@ -160,6 +168,8 @@ func (app *Application) SignInGet(w http.ResponseWriter, r *http.Request, s []st
 	}
 	return
 }
+
+/*############################################################################################################*/
 
 func (app *Application) CreatePostPost(w http.ResponseWriter, r *http.Request) {
 	session, err := app.checkerSession(w, r)
@@ -175,7 +185,7 @@ func (app *Application) CreatePostPost(w http.ResponseWriter, r *http.Request) {
 	post := models.Post{
 		UserId:   session.UserID,
 		UserName: session.UserName,
-		Text:     r.FormValue("text"),
+		Text:     r.FormValue("content"),
 		Category: r.FormValue("category"),
 
 		Title: r.FormValue("title"),
@@ -185,10 +195,10 @@ func (app *Application) CreatePostPost(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, err)
 	}
 	r.Method = http.MethodGet
-	url := fmt.Sprintf("/createPost")
-	http.Redirect(w, r, url, http.StatusPermanentRedirect)
-
+	app.createPost(w, r)
+	return
 }
+
 func (app *Application) CreatePostGet(w http.ResponseWriter, r *http.Request, s []string) {
 	session, err := app.checkerSession(w, r)
 	if err != nil {
@@ -246,8 +256,9 @@ func (app *Application) HomeGet(w http.ResponseWriter, r *http.Request, s []stri
 			app.redirect(w, r)
 			return
 		}
+		r.Method = http.MethodGet
 		url := fmt.Sprintf("/?category=%s", category)
-		http.Redirect(w, r, url, http.StatusPermanentRedirect)
+		http.Redirect(w, r, url, http.StatusSeeOther)
 	}
 	structure := TemplateStructure{}
 	if category == "" {
@@ -319,10 +330,11 @@ func (app *Application) PostPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	r.Method = http.MethodGet
-	url := fmt.Sprintf("/post?postId=%s", postIdStr)
-	http.Redirect(w, r, url, http.StatusPermanentRedirect)
 
+	url := fmt.Sprintf("/post?postId=%s", postIdStr)
+	http.Redirect(w, r, url, http.StatusSeeOther)
 }
+
 func (app *Application) PostGet(w http.ResponseWriter, r *http.Request, s []string) {
 	session, err := app.checkerSession(w, r)
 	if err != nil {
@@ -358,7 +370,7 @@ func (app *Application) PostGet(w http.ResponseWriter, r *http.Request, s []stri
 			return
 		}
 		url := fmt.Sprintf("/post?postId=%s", postIdStr)
-		http.Redirect(w, r, url, http.StatusPermanentRedirect)
+		http.Redirect(w, r, url, http.StatusSeeOther)
 	} else if action == "reactionComment" {
 
 		if session != nil {
@@ -379,7 +391,7 @@ func (app *Application) PostGet(w http.ResponseWriter, r *http.Request, s []stri
 			return
 		}
 		url := fmt.Sprintf("/post?postId=%s", postIdStr)
-		http.Redirect(w, r, url, http.StatusPermanentRedirect)
+		http.Redirect(w, r, url, http.StatusSeeOther)
 	}
 	structure := TemplateStructure{}
 	if session != nil {
@@ -445,7 +457,7 @@ func (app *Application) LikedPostGet(w http.ResponseWriter, r *http.Request, s [
 			return
 		}
 
-		http.Redirect(w, r, "/likedPosts", http.StatusPermanentRedirect)
+		http.Redirect(w, r, "/likedPosts", http.StatusSeeOther)
 	}
 	structure := TemplateStructure{}
 	if session != nil {
@@ -507,7 +519,7 @@ func (app *Application) CreatedPostGet(w http.ResponseWriter, r *http.Request, s
 			return
 		}
 
-		http.Redirect(w, r, "/createdPosts", http.StatusPermanentRedirect)
+		http.Redirect(w, r, "/createdPosts", http.StatusSeeOther)
 	}
 	structure := TemplateStructure{}
 	if session != nil {

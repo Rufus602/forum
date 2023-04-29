@@ -4,8 +4,9 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/google/uuid"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Model struct {
@@ -13,7 +14,7 @@ type Model struct {
 }
 
 func (m *Model) DeleteToken(Token string) error {
-	stmt, err := m.DB.Prepare("DELETE FROM session WHERE Token = ?")
+	stmt, err := m.DB.Prepare("DELETE FROM Sessions WHERE Token = ?")
 	if err != nil {
 		return err
 	}
@@ -25,6 +26,7 @@ func (m *Model) DeleteToken(Token string) error {
 	}
 	return nil
 }
+
 func (m *Model) GetUserIDByToken(token string) (*Session, error) {
 	/**/
 	query := `SELECT user_id, user_name, token, expiration_date FROM Sessions  where token = ?`
@@ -44,6 +46,7 @@ func (m *Model) GetUserIDByToken(token string) (*Session, error) {
 	}
 	return session, nil
 }
+
 func (m *Model) CreateSession(userId int, userName string) (string, time.Time, error) {
 	token := uuid.NewString()
 	date := time.Now().Add(2 * time.Hour)
@@ -59,7 +62,8 @@ func (m *Model) CreateSession(userId int, userName string) (string, time.Time, e
 /*############################################################################################################*/
 
 func (m *Model) GetUser(userName string, password string) (*Session, error) {
-	query := `SELECT user_id from Users where user_name=? and password=?`
+	query := "SELECT user_id from Users where user_name=? and password=?"
+
 	row := m.DB.QueryRow(query, userName, password)
 	var userId int
 	if err := row.Scan(&userId); err != nil {
@@ -114,6 +118,7 @@ func (m *Model) GetPostAll() ([]*Post, error) {
 	}
 	return posts, nil
 }
+
 func (m *Model) GetPostCategories(category string) ([]*Post, error) {
 	query := `SELECT post_id, user_name, title, text, category FROM Posts where category=?`
 	rows, err := m.DB.Query(query, category)
@@ -163,7 +168,6 @@ func (m *Model) GetPostLiked(userId int) ([]*Post, error) {
 }
 
 func (m *Model) GetComments(postId int) ([]*Comment, error) {
-
 	query := `SELECT comment_id, user_id, post_id, user_name, text FROM Comments where post_id=?`
 	rows, err := m.DB.Query(query, postId)
 	if err != nil {
@@ -296,6 +300,7 @@ func (m *Model) GetReactionPost(userId int, postId int) (reaction int, err error
 	}
 	return reaction, nil
 }
+
 func (m *Model) GetReactionComment(userId int, commentId int) (reaction int, err error) {
 	if userId == 0 {
 		return 0, nil
@@ -310,6 +315,7 @@ func (m *Model) GetReactionComment(userId int, commentId int) (reaction int, err
 	}
 	return reaction, nil
 }
+
 func (m *Model) GetReactionCountPost(postId int) (likes, dislikes int, err error) {
 	rowLikes := m.DB.QueryRow("SELECT COUNT(*) from PostReactions where post_id=$1 and reaction=1", postId)
 	rowDislikes := m.DB.QueryRow("SELECT COUNT(*) from PostReactions where post_id=$1 and reaction=2", postId)
@@ -324,6 +330,7 @@ func (m *Model) GetReactionCountPost(postId int) (likes, dislikes int, err error
 	}
 	return likes, dislikes, nil
 }
+
 func (m *Model) GetReactionCountComment(postId int) (likes, dislikes int, err error) {
 	rowLikes := m.DB.QueryRow("SELECT COUNT(*) from CommentReactions where comment_id=$1 and reaction=1", postId)
 	rowDislikes := m.DB.QueryRow("SELECT COUNT(*) from CommentReactions where comment_id=$1 and reaction=2", postId)

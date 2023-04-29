@@ -47,7 +47,7 @@ const (
 	Users = `CREATE TABLE IF NOT EXISTS Users(
 		user_id INTEGER PRIMARY KEY,
 		user_name TEXT UNIQUE,
-		email TEXT UNIQUE,
+		gmail TEXT UNIQUE,
 		password TEXT
 		);`
 	Post = `CREATE TABLE IF NOT EXISTS Posts (
