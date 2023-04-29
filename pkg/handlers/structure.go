@@ -9,7 +9,7 @@ type TemplateStructure struct {
 	Posts    []*models.Post
 	Comments []*models.Comment
 	Err      string
+	Tag      string
 }
 
-type ErrMessage struct {
-}
+type ErrMessage struct{}

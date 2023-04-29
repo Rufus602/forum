@@ -35,11 +35,8 @@ func (m *Model) GetUserIDByToken(token string) (*Session, error) {
 	session := &Session{}
 
 	err := row.Scan(&session.UserID, &session.UserName, &session.Token, &session.ExpirationDate)
-	// fmt.Println(err)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrNoRecord
-		} else {
 			return nil, ErrNoRecord
 		}
 		return nil, err
@@ -111,8 +108,7 @@ func (m *Model) GetPostAll() ([]*Post, error) {
 		return nil, err
 	}
 	defer rows.Close()
-	posts := []*Post{}
-	err = m.PostShorter(rows, posts)
+	posts, err := m.PostShorter(rows)
 	if err != nil {
 		return nil, err
 	}
@@ -126,8 +122,8 @@ func (m *Model) GetPostCategories(category string) ([]*Post, error) {
 		return nil, err
 	}
 	defer rows.Close()
-	posts := []*Post{}
-	err = m.PostShorter(rows, posts)
+
+	posts, err := m.PostShorter(rows)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrNoRecord
@@ -144,8 +140,7 @@ func (m *Model) GetPostCreated(userId int) ([]*Post, error) {
 		return nil, err
 	}
 	defer rows.Close()
-	posts := []*Post{}
-	err = m.PostShorter(rows, posts)
+	posts, err := m.PostShorter(rows)
 	if err != nil {
 		return nil, err
 	}
@@ -159,8 +154,7 @@ func (m *Model) GetPostLiked(userId int) ([]*Post, error) {
 		return nil, err
 	}
 	defer rows.Close()
-	posts := []*Post{}
-	err = m.PostShorter(rows, posts)
+	posts, err := m.PostShorter(rows)
 	if err != nil {
 		return nil, err
 	}
@@ -180,7 +174,6 @@ func (m *Model) GetComments(postId int) ([]*Comment, error) {
 		err = rows.Scan(&comment.CommentId, &comment.UserId, &comment.PostId, &comment.UserName, &comment.Text)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
-				fmt.Println("ErrorInComments")
 				return nil, ErrNoRecord
 			}
 			return nil, err
@@ -218,7 +211,8 @@ func (m *Model) ReactPost(userId int, postId int, reaction int) error {
 			return err
 		}
 	} else {
-		_, err = m.DB.Exec("UPDATE PostReactions SET reaction = $1, WHERE user_id = $2 and post_id=$3", reaction, userId, postId)
+		fmt.Println("here")
+		_, err = m.DB.Exec("UPDATE PostReactions SET reaction = $1 WHERE user_id = $2 and post_id=$3", reaction, userId, postId)
 		if err != nil {
 			return err
 		}
@@ -346,26 +340,28 @@ func (m *Model) GetReactionCountComment(postId int) (likes, dislikes int, err er
 	return likes, dislikes, nil
 }
 
-func (m *Model) PostShorter(rows *sql.Rows, posts []*Post) (err error) {
+func (m *Model) PostShorter(rows *sql.Rows) (posts []*Post, err error) {
 	for rows.Next() {
 		post := &Post{}
 		err = rows.Scan(&post.PostId, &post.UserName, &post.Title, &post.Text, &post.Category)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
-				return ErrNoRecord
+				return nil, ErrNoRecord
 			}
-			return err
+			return nil, err
 		}
 		post.Likes, post.Dislikes, err = m.GetReactionCountPost(post.PostId)
 		if err != nil {
-			return err
+			return nil, err
 		}
+
 		posts = append(posts, post)
 	}
+
 	if err := rows.Err(); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return posts, nil
 }
 
 /*#####################################################################################################################################################*/

@@ -62,7 +62,6 @@ func (app *Application) SignUpPost(w http.ResponseWriter, r *http.Request) {
 		Gmail:    r.FormValue("email"),
 		Password: r.FormValue("password"),
 	}
-	fmt.Println(user.UserName)
 
 	err = app.DB.InsertUser(user)
 	if err != nil {
@@ -236,9 +235,13 @@ func (app *Application) HomeGet(w http.ResponseWriter, r *http.Request, s []stri
 		return
 	}
 	action := r.URL.Query().Get("action")
-	category := r.URL.Query().Get("category")
+	tag := r.URL.Query().Get("tag")
 	postIdStr := r.URL.Query().Get("postId")
 	reactStr := r.URL.Query().Get("reaction")
+	fmt.Println(action, "1")
+	fmt.Println(tag, "2")
+	fmt.Println(postIdStr, "3")
+	fmt.Println(reactStr, "4")
 	if action == "reaction" {
 		if session != nil {
 			postId, err := strconv.Atoi(postIdStr)
@@ -257,12 +260,16 @@ func (app *Application) HomeGet(w http.ResponseWriter, r *http.Request, s []stri
 			return
 		}
 		r.Method = http.MethodGet
-		url := fmt.Sprintf("/?category=%s", category)
+		url := fmt.Sprintf("?tag=%s", tag)
 		http.Redirect(w, r, url, http.StatusSeeOther)
 	}
 	structure := TemplateStructure{}
-	if category == "" {
+	structure.Tag = tag
+	fmt.Println(structure.Tag, "5")
+	if tag == "" {
+
 		structure.Posts, err = app.DB.GetPostAll()
+
 		if err != nil {
 			if errors.Is(err, models.ErrNoRecord) {
 				structure.Posts = nil
@@ -271,9 +278,10 @@ func (app *Application) HomeGet(w http.ResponseWriter, r *http.Request, s []stri
 				return
 			}
 		}
-	} else if category != "" {
-		if category == "Golang" || category == "Rust" || category == "JS" {
-			structure.Posts, err = app.DB.GetPostCategories(category)
+
+	} else if tag != "" {
+		if tag == "golang" || tag == "rust" || tag == "js" {
+			structure.Posts, err = app.DB.GetPostCategories(tag)
 			if err != nil {
 				if errors.Is(err, models.ErrNoRecord) {
 					structure.Posts = nil

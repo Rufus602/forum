@@ -12,10 +12,9 @@ func (app *Application) MiddleWare(handle http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cookie, err := r.Cookie("session_token")
 		if err != nil {
-			fmt.Println("1")
+
 			http.Redirect(w, r, "/signin", http.StatusPermanentRedirect)
 			if _, err = w.Write([]byte("Please login")); err != nil {
-				fmt.Println("2")
 				app.serverError(w, err)
 			}
 			return
