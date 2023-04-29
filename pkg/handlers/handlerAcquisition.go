@@ -16,7 +16,15 @@ var (
 	ErrInvalidEmail    = errors.New("Email must consists from letters, at and dot")
 	ErrInvalidPassword = errors.New("Password have to contain at least 8 characters but no more than 20; include number, lowercase, uppercase and symbol")
 	ErrInvalidUsername = errors.New("Name must consists from letters")
+	errorSignIn        = errors.New("There is no such user. Maybe incorrect username or password, or you did not register")
 )
+
+func checkInput(u, p string) error {
+	if u == "" || p == "" {
+		return errorSignIn
+	}
+	return nil
+}
 
 func checkUserInfo(user models.User) error {
 	if !regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`).MatchString(user.Gmail) {
@@ -133,6 +141,20 @@ func (app *Application) SignUpPost(w http.ResponseWriter, r *http.Request, s []s
 		}
 		return
 	}
+	if err = app.DB.CheckDuplex(user); err != nil {
+		r.Method = http.MethodGet
+		structure := TemplateStructure{Err: err.Error()}
+
+		templates, err := template.ParseFiles(s...)
+		if err != nil {
+			app.serverError(w, err)
+		}
+		if err := templates.Execute(w, structure); err != nil {
+			app.serverError(w, err)
+			return
+		}
+		return
+	}
 
 	err = app.DB.InsertUser(user)
 	if err != nil {
@@ -168,7 +190,7 @@ func (app *Application) SignUpGet(w http.ResponseWriter, r *http.Request, s []st
 
 /*############################################################################################################*/
 
-func (app *Application) SignInPost(w http.ResponseWriter, r *http.Request) {
+func (app *Application) SignInPost(w http.ResponseWriter, r *http.Request, s []string) {
 	session, err := app.checkerSession(w, r)
 	if err != nil {
 		app.serverError(w, err)
@@ -183,6 +205,20 @@ func (app *Application) SignInPost(w http.ResponseWriter, r *http.Request) {
 
 	username := r.FormValue("username")
 	password := r.FormValue("password")
+	if err = checkInput(username, password); err != nil {
+		r.Method = http.MethodGet
+		structure := TemplateStructure{Err: err.Error()}
+
+		templates, err := template.ParseFiles(s...)
+		if err != nil {
+			app.serverError(w, err)
+		}
+		if err := templates.Execute(w, structure); err != nil {
+			app.serverError(w, err)
+			return
+		}
+		return
+	}
 
 	session, err = app.DB.GetUser(username, password)
 	if err != nil {
@@ -262,6 +298,12 @@ func (app *Application) CreatePostPost(w http.ResponseWriter, r *http.Request) {
 		Category: r.FormValue("category"),
 
 		Title: r.FormValue("title"),
+	}
+	if post.Text == "" || post.Category == "" || post.Title == "" {
+		r.Method = http.MethodGet
+
+		http.Redirect(w, r, "/createPost", http.StatusSeeOther)
+		return
 	}
 	err = app.DB.InsertPost(post)
 	if err != nil {
@@ -351,7 +393,6 @@ func (app *Application) HomeGet(w http.ResponseWriter, r *http.Request, s []stri
 		}
 
 	} else if tag != "" {
-		fmt.Println(tag)
 		if tag == "golang" || tag == "rust" || tag == "js" {
 			structure.Posts, err = app.DB.GetPostCategories(tag)
 			if err != nil {
@@ -391,6 +432,7 @@ func (app *Application) PostPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if session == nil {
+		r.Method = http.MethodGet
 		app.signIn(w, r)
 		return
 	}

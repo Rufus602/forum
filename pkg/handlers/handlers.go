@@ -8,11 +8,10 @@ import (
 // var Api func() []structure.Artist
 
 func (app *Application) signIn(w http.ResponseWriter, r *http.Request) {
+	strings := []string{"./ui/templates/signin.html", "./ui/templates/header.html", "./ui/templates/footer.html"}
 	if r.Method == http.MethodPost {
-		app.SignInPost(w, r)
+		app.SignInPost(w, r, strings)
 	} else if r.Method == http.MethodGet {
-
-		strings := []string{"./ui/templates/signin.html", "./ui/templates/header.html", "./ui/templates/footer.html"}
 		app.SignInGet(w, r, strings)
 	} else {
 		w.Header().Set("Allow", http.MethodGet+", "+http.MethodPost)

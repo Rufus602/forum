@@ -12,6 +12,23 @@ type Model struct {
 	DB *sql.DB
 }
 
+func (m *Model) CheckDuplex(u User) error {
+	count := 0
+
+	query := "SELECT COUNT(*) FROM Users WHERE user_name = ? OR gmail = ?"
+
+	err := m.DB.QueryRow(query, u.UserName, u.Gmail).Scan(&count)
+	if err != nil {
+		return err
+	}
+
+	if count > 0 {
+		return errors.New("User with this username or e-mail already exists")
+	}
+
+	return nil
+}
+
 func (m *Model) DeleteToken(Token string) error {
 	stmt, err := m.DB.Prepare("DELETE FROM Sessions WHERE Token = ?")
 	if err != nil {
