@@ -1,9 +1,9 @@
-### Forum
+# Forum
 
 
 This is a web forum project created to enable communication between users through posts and comments. The forum allows users to associate categories to posts, like and dislike posts and comments, and filter posts based on categories, created posts, and liked posts.
 
-Objectives
+## Objectives
 
 The main objectives of this project are:
 
@@ -47,11 +47,22 @@ Usage
 
 To run the project, you need to have Docker installed on your machine. Once you have Docker installed, you can clone the repository and run the following command in the project directory:
 
-go build -o Forum ./cmd/main.go
+### Instructions
 
-go run ./cmd/web*
 
-The command will build the Docker image and start the application.
+- Open download folder in terminal
+- Type in terminal: 
+- - `make build .` - Create image
+- - `make d-run` - Run image
+- - `make d-id` - View container ID
+- - `docker start "CONTAINER ID"` - Start container
+- go to link "http://localhost:8080"
+- - `docker stop "CONTAINER ID"` - Stop container
+
+
+
+
+
 
 Conclusion
 
