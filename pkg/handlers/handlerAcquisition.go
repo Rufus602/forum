@@ -238,10 +238,7 @@ func (app *Application) HomeGet(w http.ResponseWriter, r *http.Request, s []stri
 	tag := r.URL.Query().Get("tag")
 	postIdStr := r.URL.Query().Get("postId")
 	reactStr := r.URL.Query().Get("reaction")
-	fmt.Println(action, "1")
-	fmt.Println(tag, "2")
-	fmt.Println(postIdStr, "3")
-	fmt.Println(reactStr, "4")
+
 	if action == "reaction" {
 		if session != nil {
 			postId, err := strconv.Atoi(postIdStr)
@@ -265,7 +262,6 @@ func (app *Application) HomeGet(w http.ResponseWriter, r *http.Request, s []stri
 	}
 	structure := TemplateStructure{}
 	structure.Tag = tag
-	fmt.Println(structure.Tag, "5")
 	if tag == "" {
 
 		structure.Posts, err = app.DB.GetPostAll()
@@ -351,16 +347,20 @@ func (app *Application) PostGet(w http.ResponseWriter, r *http.Request, s []stri
 	}
 	action := r.URL.Query().Get("action")
 	postIdStr := r.URL.Query().Get("postId")
+
 	if postIdStr == "" {
 		app.clientError(w, http.StatusNotFound)
 		return
 	}
 	postId, err := strconv.Atoi(postIdStr)
 	if err != nil {
+
 		app.clientError(w, http.StatusNotFound)
 		return
 	}
+
 	reactStr := r.URL.Query().Get("reaction")
+
 	if action == "reactionPost" {
 		if session != nil {
 
@@ -380,13 +380,16 @@ func (app *Application) PostGet(w http.ResponseWriter, r *http.Request, s []stri
 		url := fmt.Sprintf("/post?postId=%s", postIdStr)
 		http.Redirect(w, r, url, http.StatusSeeOther)
 	} else if action == "reactionComment" {
-
+		fmt.Println("tut")
 		if session != nil {
 			commentIdStr := r.URL.Query().Get("commentId")
 			commentId, err := strconv.Atoi(commentIdStr)
+			fmt.Println(commentId)
+			fmt.Println(postId)
 			if err == nil {
 				reaction, err := strconv.Atoi(reactStr)
 				if err == nil {
+					fmt.Println("here")
 					err = app.DB.ReactComment(session.UserID, commentId, reaction)
 					if err != nil {
 						app.serverError(w, err)
@@ -415,6 +418,7 @@ func (app *Application) PostGet(w http.ResponseWriter, r *http.Request, s []stri
 		return
 	}
 	structure.Comments, err = app.DB.GetComments(postId)
+
 	if err != nil {
 		if errors.Is(err, models.ErrNoRecord) {
 		} else {

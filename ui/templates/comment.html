@@ -4,10 +4,10 @@
 	<div class="col-xs-2">
 	</div>
 	<div class="col-xs-8">
-		<form role="form" action="/createComment?id={{.Id}}" method="POST">
+		<form role="form" action="/post?postId={{.PostId}}" method="POST">
 			<div class="form-group">
 				<label>Comment</label>
-				<textarea placeholder="Enter text..." id="content" name="commentContent"></textarea>
+				<textarea placeholder="Enter text..." id="content" name="text"></textarea>
 			</div>
 			
 			<button type="submit" name="send" value="send" class="btn btn-default center-block ">Send</button>

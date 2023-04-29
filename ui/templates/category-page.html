@@ -2,13 +2,14 @@
 
 
 
+
 <div class="row" style="padding: 20px;">
 	<div class="col-md-3" >
 	
 	</div>
 
 	<div class="col-md-3" >
-<h3 style="color: #478ccf;">Post: {{.Post.Id}}</h3>
+<h3 style="color: #478ccf;">Post: {{.Post.PostId}}</h3>
 	</div>
 	
 
@@ -22,10 +23,45 @@
 
 {{with .Post}}
 
-{{template "topik-theme" .}}
+<div class="container">
+    <div class="col-xs-2">
+
+    </div>
+
+    <div class="col-xs-8">
+        <div class=" panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title" style="color: #478ccf;"><a href="/post?postId={{.PostId}}">Theme: {{.Title}}</a></h3>
+                {{if eq .Category "golang"}}
+                <p>Category: Golang</p>
+                {{else if eq .Category "js"}}
+                <p>Category: JavaScript</p>
+                {{else if eq .Category "rust"}}
+                <p>Category: Rust</p>
+                {{else}}
+                <p>Category: {{.Category}}</p>
+                {{end}}
+
+                <div class="pull-right">
+                    <a href="/post?action=reactionPost&reaction=1&postId={{.PostId}}">Like  {{.Likes}}</a>
+
+                    <a href="/post?&action=reactionPost&reaction=2&postId={{.PostId}}">Dislike   {{.Dislikes}}</a>
+                </div>
+                <h3 class="username" style="font-size: 15px;">Username: {{.UserName}}</h3>
+
+            </div>
+            <div class="panel-body">
+                {{.Text}}
+            </div>
+        </div>
+    </div>
+
+   
+    <div class="col-xs-2">
+    </div>
+</div>
+
 {{end}}
-
-
 
 {{with .Comments}}
 {{range .}}
@@ -38,23 +74,15 @@
         <div class=" panel panel-default">
             <div class="panel-heading">
                 <h3 class="panel-title" style="color: #478ccf;">Comment:</h3>
+               
+
                 <div class="pull-right">
-                    <form action="/comment/like" method="POST">
-                        <input type="hidden" name="post_id" value="{{ .PostId}}">
-                        <input type="hidden" name="action" value="like">
-                        <input type="hidden" name="comment_id" value="{{.Id}}">
-                        <button class="pull-right glyphicon glyphicon-heart-empty" type="submit "> {{.Like}} Like</button>
-                    </form>
-                    
-                    <form action="/comment/like" method="POST">
-                        <input type="hidden" name="post_id" value="{{ .PostId }}">
-                        <input type="hidden" name="action" value="dislike">
-                        <input type="hidden" name="comment_id" value="{{.Id}}">
-                        <button class="pull-right glyphicon glyphicon-heart" type="submitglyphicon "> {{.Dislike}} Dislike</button>
-                    </form>
+                    <a href="/post?action=reactionComment&reaction=1&postId={{.PostId}}&commentId={{.CommentId}}">Like  {{.Likes}}</a>
+
+                    <a href="/post?action=reactionComment&reaction=2&postId={{.PostId}}&commentId={{.CommentId}}">Dislike   {{.Dislikes}}</a>
                 </div>
                 <h3 class="username" style="font-size: 15px;">Username: {{.UserName}}</h3>
-    
+
             </div>
             <div class="panel-body">
                 {{.Text}}
@@ -62,9 +90,8 @@
         </div>
     </div>
 
-
+   
     <div class="col-xs-2">
-     
     </div>
 </div>
 
@@ -72,8 +99,10 @@
 {{end}}
 {{end}}
 {{with .Post}}
+
 {{ template "comment" .}}
 {{end}}
+
 
 {{ template "footer" }}
 

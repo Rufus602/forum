@@ -3,7 +3,6 @@ package models
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -211,7 +210,7 @@ func (m *Model) ReactPost(userId int, postId int, reaction int) error {
 			return err
 		}
 	} else {
-		fmt.Println("here")
+
 		_, err = m.DB.Exec("UPDATE PostReactions SET reaction = $1 WHERE user_id = $2 and post_id=$3", reaction, userId, postId)
 		if err != nil {
 			return err
@@ -226,7 +225,7 @@ func (m *Model) ReactComment(userId int, commentId int, reaction int) error {
 		return err
 	}
 	if result == reaction {
-		_, err := m.DB.Exec("DELETE FROM CommentReactions WHERE post_id = $1 AND comment_id = $2", commentId, userId)
+		_, err := m.DB.Exec("DELETE FROM CommentReactions WHERE comment_id = $1 AND comment_id = $2", commentId, userId)
 		if err != nil {
 			return err
 		}
@@ -238,7 +237,7 @@ func (m *Model) ReactComment(userId int, commentId int, reaction int) error {
 			return err
 		}
 	} else {
-		_, err = m.DB.Exec("UPDATE CommentReactions SET reaction = $1, WHERE user_id = $2 and comment_id=$3", reaction, userId, commentId)
+		_, err = m.DB.Exec("UPDATE CommentReactions SET reaction = $1 WHERE user_id = $2 and comment_id=$3", reaction, userId, commentId)
 		if err != nil {
 			return err
 		}

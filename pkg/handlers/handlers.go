@@ -116,7 +116,14 @@ func (app *Application) post(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		app.PostPost(w, r)
 	} else if r.Method == http.MethodGet {
-		strings := []string{"./ui/templates/header.gohtml", "./ui/templates/comment.gohtml", "./ui/templates/commentPost.gohtml", "./ui/templates/posts.gohtml"}
+		strings := []string{
+			"./ui/templates/category-page.html",
+			"./ui/templates/header.html",
+			"./ui/templates/footer.html",
+			"./ui/templates/comment.html",
+			"./ui/templates/buttons.html",
+			"./ui/templates/category-topik.html",
+		}
 		app.PostGet(w, r, strings)
 	} else {
 		w.Header().Set("Allow", http.MethodGet+", "+http.MethodPost)
