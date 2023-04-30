@@ -228,9 +228,9 @@ func (app *Application) SignInPost(w http.ResponseWriter, r *http.Request, s []s
 			if err != nil {
 				app.serverError(w, err)
 			}
-			if err := templates.Execute(w, nil); err != nil {
+			structure := TemplateStructure{Err: errorMessage}
+			if err := templates.Execute(w, structure); err != nil {
 				app.serverError(w, err)
-				return
 			}
 			return
 		}
