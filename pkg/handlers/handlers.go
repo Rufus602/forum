@@ -5,8 +5,6 @@ import (
 	"time"
 )
 
-// var Api func() []structure.Artist
-
 func (app *Application) signIn(w http.ResponseWriter, r *http.Request) {
 	strings := []string{"./ui/templates/signin.html", "./ui/templates/header.html", "./ui/templates/footer.html"}
 	if r.Method == http.MethodPost {
