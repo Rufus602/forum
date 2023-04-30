@@ -60,7 +60,6 @@ const (
 			FOREIGN KEY (user_id) REFERENCES Users(user_id)
 		);`
 
-	// postIndex = `CREATE INDEX IF NOT EXISTS idx_posts_created ON posts(created);`
 	Comment = `CREATE TABLE IF NOT EXISTS Comments (
 		comment_id INTEGER PRIMARY KEY AUTOINCREMENT,
 		user_id INTEGER,

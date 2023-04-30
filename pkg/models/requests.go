@@ -60,6 +60,14 @@ func (m *Model) GetUserIDByToken(token string) (*Session, error) {
 	return session, nil
 }
 
+func (m *Model) DeleteSessionByUserId(userId int) error {
+	_, err := m.DB.Exec("DELETE FROM Sessions WHERE user_id = $1", userId)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (m *Model) CreateSession(userId int, userName string) (string, time.Time, error) {
 	token := uuid.NewString()
 	date := time.Now().Add(2 * time.Hour)
@@ -85,10 +93,15 @@ func (m *Model) GetUser(userName string, password string) (*Session, error) {
 		}
 		return nil, err
 	}
+	err := m.DeleteSessionByUserId(userId)
+	if err != nil {
+		return nil, err
+	}
 	token, date, err := m.CreateSession(userId, userName)
 	if err != nil {
 		return nil, err
 	}
+
 	session := &Session{
 		UserID:         userId,
 		Token:          token,

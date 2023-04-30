@@ -196,7 +196,7 @@ func (app *Application) SignInPost(w http.ResponseWriter, r *http.Request, s []s
 		app.serverError(w, err)
 		return
 	}
-	// r.Method = http.MethodGet
+
 	if session != nil {
 
 		app.logout(w, r)
